@@ -9,42 +9,69 @@ import {
   Copy,
   Star,
   CheckCircle2,
-  XCircle,
   Clock,
-  Sparkles,
-  ShieldCheck,
   Loader2,
   Tag,
   Flame,
-  ArrowRight,
 } from 'lucide-react';
 
 interface ServicePackageItem {
   id: string;
   serviceId: string;
   name: string;
-  tier: string;
-  price: number;
+  bestFor?: string | null;
+  tier?: string | null;
+  price: string | number;
   currency: string;
-  originalPrice?: number | null;
+  originalPrice?: string | number | null;
   discount?: string | null;
   billingType?: string | null;
   deliveryDays?: string | null;
+  timeline?: string | null;
   shortDesc?: string | null;
   badge?: string | null;
   guaranteeText?: string | null;
-  features: string;
+  features?: string | string[] | null;
+  deliverables?: string | string[] | null;
   ctaText?: string | null;
   ctaLink?: string | null;
   isPopular: boolean;
-  status: 'PUBLISHED' | 'DRAFT';
+  status: 'PUBLISHED' | 'DRAFT' | string;
   displayOrder: number;
-  service?: { id: string; title: string; slug: string };
+  service?: { id: string; name?: string; title?: string; slug?: string };
 }
 
 interface PricingPackagesManagerProps {
   services: any[];
   showNotification: (msg: string, isErr?: boolean) => void;
+}
+
+// Helper to format currency values safely
+function formatPriceDisplay(val?: string | number | null): string {
+  if (val === undefined || val === null || val === '') return '$0';
+  const str = String(val).trim();
+  if (str.startsWith('$')) return str;
+  const num = parseFloat(str.replace(/[^0-9.]/g, ''));
+  if (!isNaN(num)) {
+    return `$${num.toLocaleString()}`;
+  }
+  return `$${str}`;
+}
+
+// Helper to parse deliverables / features list
+function parseDeliverables(pkg: ServicePackageItem): string[] {
+  const raw = pkg.deliverables !== undefined && pkg.deliverables !== null ? pkg.deliverables : pkg.features;
+  if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
+      return [raw];
+    } catch {
+      return raw.split('\n').map((s) => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
 }
 
 export default function PricingPackagesManager({
@@ -63,18 +90,18 @@ export default function PricingPackagesManager({
   const [formData, setFormData] = useState({
     serviceId: '',
     name: '',
+    bestFor: '',
     tier: 'STARTER',
-    price: 1490,
+    price: '1490',
     currency: 'USD',
-    originalPrice: 1990,
+    originalPrice: '1990',
     discount: '25% OFF',
     billingType: 'Fixed Sprint Milestone',
-    deliveryDays: '7-10 Days',
-    shortDesc: '',
+    timeline: '7-10 Days',
     badge: '',
-    guaranteeText: '100% Unrestricted IP Handover & Code Ownership',
-    ctaText: 'Initiate This Sprint',
-    ctaLink: '/contact',
+    guaranteeText: '100% Complete IP Handover Guarantee',
+    ctaText: 'Get Started',
+    ctaLink: '#contact',
     isPopular: false,
     status: 'PUBLISHED' as 'PUBLISHED' | 'DRAFT',
     displayOrder: 0,
@@ -89,7 +116,10 @@ export default function PricingPackagesManager({
       const res = await fetch('/api/admin/packages');
       const data = await res.json();
       if (data.success) {
-        setPackages(data.data || []);
+        const list = data.packages || data.data || [];
+        setPackages(list);
+      } else {
+        showNotification(data.error || 'Failed to load packages', true);
       }
     } catch (err) {
       showNotification('Failed to load packages', true);
@@ -104,26 +134,31 @@ export default function PricingPackagesManager({
 
   const handleOpenAdd = () => {
     setEditingPackage(null);
-    const defaultServiceId = services[0]?.id || '';
+    const defaultServiceId =
+      selectedServiceFilter !== 'all'
+        ? selectedServiceFilter
+        : services[0]?.id || '';
+
     setFormData({
       serviceId: defaultServiceId,
       name: '',
+      bestFor: 'High-growth brands seeking full turnkey delivery',
       tier: 'GROWTH',
-      price: 2490,
+      price: '2490',
       currency: 'USD',
-      originalPrice: 3200,
+      originalPrice: '3200',
       discount: '20% OFF',
-      billingType: '50% Kickoff / 50% Sign-off',
-      deliveryDays: '10-14 Days',
-      shortDesc: 'Comprehensive production sprint engineered for high commercial conversion.',
+      billingType: 'Fixed Sprint Milestone',
+      timeline: '10-14 Days',
       badge: 'Most Popular',
-      guaranteeText: '100% Complete Figma & Git Repository Ownership',
-      ctaText: 'Initiate This Sprint',
-      ctaLink: '/contact',
+      guaranteeText: '100% Unrestricted IP Handover & Code Ownership',
+      ctaText: 'Get Started',
+      ctaLink: '#contact',
       isPopular: false,
       status: 'PUBLISHED',
-      displayOrder: packages.length,
+      displayOrder: packages.length + 1,
     });
+
     setFeaturesList([
       'End-to-End Production Deliverables',
       'Direct Senior Craft Lead Oversight',
@@ -135,33 +170,32 @@ export default function PricingPackagesManager({
 
   const handleOpenEdit = (pkg: ServicePackageItem) => {
     setEditingPackage(pkg);
+
+    // Clean prices for form fields
+    const rawPrice = pkg.price !== undefined && pkg.price !== null ? String(pkg.price).replace(/^\$/, '') : '1490';
+    const rawOrig = pkg.originalPrice !== undefined && pkg.originalPrice !== null ? String(pkg.originalPrice).replace(/^\$/, '') : '';
+
     setFormData({
       serviceId: pkg.serviceId,
       name: pkg.name,
-      tier: pkg.tier || 'STARTER',
-      price: pkg.price,
+      bestFor: pkg.bestFor || pkg.shortDesc || '',
+      tier: pkg.tier || 'GROWTH',
+      price: rawPrice,
       currency: pkg.currency || 'USD',
-      originalPrice: pkg.originalPrice || 0,
+      originalPrice: rawOrig,
       discount: pkg.discount || '',
       billingType: pkg.billingType || 'Fixed Sprint Milestone',
-      deliveryDays: pkg.deliveryDays || '7-10 Days',
-      shortDesc: pkg.shortDesc || '',
+      timeline: pkg.timeline || pkg.deliveryDays || '7-10 Days',
       badge: pkg.badge || '',
       guaranteeText: pkg.guaranteeText || '',
-      ctaText: pkg.ctaText || 'Initiate This Sprint',
-      ctaLink: pkg.ctaLink || '/contact',
-      isPopular: pkg.isPopular,
-      status: pkg.status || 'PUBLISHED',
-      displayOrder: pkg.displayOrder,
+      ctaText: pkg.ctaText || 'Get Started',
+      ctaLink: pkg.ctaLink || '#contact',
+      isPopular: Boolean(pkg.isPopular),
+      status: (pkg.status as 'PUBLISHED' | 'DRAFT') || 'PUBLISHED',
+      displayOrder: pkg.displayOrder ?? 0,
     });
 
-    try {
-      const parsed = JSON.parse(pkg.features);
-      setFeaturesList(Array.isArray(parsed) ? parsed : [pkg.features]);
-    } catch (e) {
-      setFeaturesList(pkg.features ? [pkg.features] : []);
-    }
-
+    setFeaturesList(parseDeliverables(pkg));
     setModalOpen(true);
   };
 
@@ -190,7 +224,14 @@ export default function PricingPackagesManager({
     try {
       const payload = {
         ...formData,
+        deliverables: featuresList,
         features: featuresList,
+        price: formData.price.startsWith('$') ? formData.price : `$${formData.price}`,
+        originalPrice: formData.originalPrice
+          ? formData.originalPrice.startsWith('$')
+            ? formData.originalPrice
+            : `$${formData.originalPrice}`
+          : null,
       };
 
       const url = editingPackage ? `/api/admin/packages/${editingPackage.id}` : '/api/admin/packages';
@@ -225,7 +266,7 @@ export default function PricingPackagesManager({
       const res = await fetch(`/api/admin/packages/${pkgId}/duplicate`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
-        showNotification('Package duplicated successfully with full features copy!');
+        showNotification('Package duplicated successfully in Draft mode!');
         fetchPackages();
       } else {
         showNotification(data.error || 'Failed to duplicate package', true);
@@ -298,6 +339,7 @@ export default function PricingPackagesManager({
           All Services ({packages.length})
         </button>
         {services.map((s) => {
+          const serviceName = s.name || s.title || 'Service';
           const count = packages.filter((p) => p.serviceId === s.id).length;
           return (
             <button
@@ -309,7 +351,7 @@ export default function PricingPackagesManager({
                   : 'bg-white/[0.03] text-gray-400 hover:text-white border border-white/10'
               }`}
             >
-              {s.title} ({count})
+              {serviceName} ({count})
             </button>
           );
         })}
@@ -330,16 +372,23 @@ export default function PricingPackagesManager({
           <p className="text-xs text-gray-400 max-w-sm mx-auto">
             Click &quot;Create New Package&quot; to configure pricing tiers for your clients.
           </p>
+          <button
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-xs font-bold hover:bg-amber-400 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create First Package</span>
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPackages.map((pkg) => {
-            let features: string[] = [];
-            try {
-              features = JSON.parse(pkg.features);
-            } catch (e) {
-              features = pkg.features ? [pkg.features] : [];
-            }
+            const features = parseDeliverables(pkg);
+            const associatedService =
+              pkg.service?.name ||
+              pkg.service?.title ||
+              services.find((s) => s.id === pkg.serviceId)?.name ||
+              'Service';
 
             return (
               <div
@@ -362,7 +411,7 @@ export default function PricingPackagesManager({
                   <div>
                     <div className="flex items-center justify-between gap-2 text-xs font-mono text-gray-400">
                       <span className="text-amber-400 font-bold uppercase truncate">
-                        {pkg.service?.title || 'General'}
+                        {associatedService}
                       </span>
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -375,9 +424,9 @@ export default function PricingPackagesManager({
                       </span>
                     </div>
                     <h3 className="font-heading font-extrabold text-white text-xl mt-1">{pkg.name}</h3>
-                    {pkg.shortDesc && (
+                    {(pkg.bestFor || pkg.shortDesc) && (
                       <p className="text-xs text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                        {pkg.shortDesc}
+                        {pkg.bestFor || pkg.shortDesc}
                       </p>
                     )}
                   </div>
@@ -386,19 +435,19 @@ export default function PricingPackagesManager({
                   <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
                     <div className="flex items-baseline gap-2">
                       <span className="font-heading font-black text-3xl text-white">
-                        ${pkg.price.toLocaleString()}
+                        {formatPriceDisplay(pkg.price)}
                       </span>
-                      <span className="text-xs text-gray-400 font-mono uppercase">{pkg.currency}</span>
-                      {pkg.originalPrice && pkg.originalPrice > pkg.price && (
+                      <span className="text-xs text-gray-400 font-mono uppercase">{pkg.currency || 'USD'}</span>
+                      {pkg.originalPrice && (
                         <span className="text-xs text-gray-500 line-through font-mono ml-auto">
-                          ${pkg.originalPrice.toLocaleString()}
+                          {formatPriceDisplay(pkg.originalPrice)}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center justify-between text-[11px] font-mono text-gray-400 pt-1 border-t border-white/[0.06]">
-                      <span className="text-emerald-400">{pkg.discount || 'Fixed Scope'}</span>
+                      <span className="text-emerald-400">{pkg.discount || pkg.billingType || 'Fixed Scope'}</span>
                       <span className="text-purple-300 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {pkg.deliveryDays || 'Turnkey'}
+                        <Clock className="w-3 h-3" /> {pkg.timeline || pkg.deliveryDays || 'Turnkey'}
                       </span>
                     </div>
                   </div>
@@ -418,6 +467,11 @@ export default function PricingPackagesManager({
                       {features.length > 5 && (
                         <li className="text-[11px] text-gray-500 italic pl-5">
                           + {features.length - 5} more deliverables
+                        </li>
+                      )}
+                      {features.length === 0 && (
+                        <li className="text-[11px] text-gray-500 italic pl-2">
+                          No deliverables listed yet.
                         </li>
                       )}
                     </ul>
@@ -514,7 +568,7 @@ export default function PricingPackagesManager({
                   >
                     {services.map((s) => (
                       <option key={s.id} value={s.id}>
-                        {s.title}
+                        {s.name || s.title || 'Service'}
                       </option>
                     ))}
                   </select>
@@ -525,13 +579,14 @@ export default function PricingPackagesManager({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
-                    Price ($)
+                    Price ($) <span className="text-red-400">*</span>
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
+                    placeholder="1490"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -541,9 +596,10 @@ export default function PricingPackagesManager({
                     Original Price ($)
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    placeholder="1990"
                     value={formData.originalPrice}
-                    onChange={(e) => setFormData({ ...formData, originalPrice: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -563,42 +619,42 @@ export default function PricingPackagesManager({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
-                    Delivery Time
+                    Delivery Timeline
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 10-14 Days"
-                    value={formData.deliveryDays}
-                    onChange={(e) => setFormData({ ...formData, deliveryDays: e.target.value })}
+                    placeholder="e.g. 7-10 Business Days"
+                    value={formData.timeline}
+                    onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
-              {/* Short Description */}
+              {/* Best For / Description */}
               <div className="space-y-1.5">
                 <label className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
-                  Short Description
+                  Target Audience / Best For
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Full-spectrum flagship engineered for scale founders."
-                  value={formData.shortDesc}
-                  onChange={(e) => setFormData({ ...formData, shortDesc: e.target.value })}
+                  placeholder="e.g. Early-stage ventures needing foundational branding"
+                  value={formData.bestFor}
+                  onChange={(e) => setFormData({ ...formData, bestFor: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              {/* Individual Features Manager */}
+              {/* Individual Features / Deliverables Manager */}
               <div className="space-y-2 pt-2">
                 <label className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
-                  Deliverables & Features Included
+                  Deliverables & Scope Included ({featuresList.length})
                 </label>
 
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    placeholder="Type new deliverable (e.g. Complete Figma Design Token Library)..."
+                    placeholder="Type new deliverable (e.g. Complete Design Token Library)..."
                     value={newFeatureText}
                     onChange={(e) => setNewFeatureText(e.target.value)}
                     onKeyDown={(e) => {
@@ -637,10 +693,15 @@ export default function PricingPackagesManager({
                       </button>
                     </div>
                   ))}
+                  {featuresList.length === 0 && (
+                    <p className="text-xs text-gray-500 italic p-2 text-center">
+                      No deliverables added yet. Type above and click &quot;+ Add Feature&quot;.
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Badge & Popular Toggle */}
+              {/* Badge & Guarantee Text */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
@@ -648,7 +709,7 @@ export default function PricingPackagesManager({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Most Popular / Best Value"
+                    placeholder="e.g. Most Popular / High Velocity"
                     value={formData.badge}
                     onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:outline-none focus:border-purple-500"

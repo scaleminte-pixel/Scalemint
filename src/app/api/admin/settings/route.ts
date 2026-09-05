@@ -96,6 +96,11 @@ export async function PUT(request: Request) {
     const { revalidatePath } = await import('next/cache');
     try {
       revalidatePath('/', 'layout');
+      revalidatePath('/');
+      revalidatePath('/pricing');
+      revalidatePath('/about');
+      revalidatePath('/contact');
+      revalidatePath('/portfolio');
     } catch (e) {}
 
     return NextResponse.json({
@@ -111,3 +116,8 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, error: 'Failed to update settings' }, { status: 500 });
   }
 }
+
+export async function POST(request: Request) {
+  return PUT(request);
+}
+

@@ -14,7 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
         settings?.defaultSeoDesc ||
         'Scale your brand with strategic branding, websites, video editing, AI UGC, and Google Ads.',
       icons: {
-        icon: '/favicon.ico',
+        icon: settings?.faviconUrl || '/favicon.ico',
+        shortcut: settings?.faviconUrl || '/favicon.ico',
+        apple: settings?.faviconUrl || '/favicon.ico',
       },
       openGraph: {
         title: settings?.defaultSeoTitle || 'Scalemint — 360° Creative & Performance Agency',
@@ -33,6 +35,8 @@ export async function generateMetadata(): Promise<Metadata> {
         'Scale your brand with strategic branding, websites, video editing, AI UGC, and Google Ads.',
       icons: {
         icon: '/favicon.ico',
+        shortcut: '/favicon.ico',
+        apple: '/favicon.ico',
       },
     };
   }
@@ -58,6 +62,8 @@ export default async function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+        <link rel="icon" href={settings?.faviconUrl || '/favicon.ico'} sizes="any" />
+        <link rel="apple-touch-icon" href={settings?.faviconUrl || '/favicon.ico'} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

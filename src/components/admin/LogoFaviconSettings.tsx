@@ -12,7 +12,7 @@ import {
   MapPin,
   Loader2,
   Trash2,
-  Eye,
+  Upload,
   CheckCircle2,
 } from 'lucide-react';
 import MediaSelectModal from '@/components/MediaSelectModal';
@@ -29,6 +29,8 @@ export default function LogoFaviconSettings({
   showNotification,
 }: LogoFaviconSettingsProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
   const [pickerTarget, setPickerTarget] = useState<'logo' | 'favicon' | null>(null);
 
@@ -44,15 +46,85 @@ export default function LogoFaviconSettings({
         logoUrl: asset.publicUrl,
         logoMediaId: asset.id,
       }));
+      showNotification('Logo selected from Media Library');
     } else if (pickerTarget === 'favicon') {
       setSettings((prev: any) => ({
         ...prev,
         faviconUrl: asset.publicUrl,
         faviconMediaId: asset.id,
       }));
+      showNotification('Favicon selected from Media Library');
     }
     setMediaModalOpen(false);
     setPickerTarget(null);
+  };
+
+  // Direct file upload for Logo
+  const handleDirectLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'branding');
+
+      const res = await fetch('/api/admin/media', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to upload logo image');
+      }
+
+      setSettings((prev: any) => ({
+        ...prev,
+        logoUrl: data.data.publicUrl,
+        logoMediaId: data.data.id,
+      }));
+      showNotification('Logo uploaded successfully! Click "Save Brand Settings" to apply.');
+    } catch (err: any) {
+      showNotification(err.message || 'Upload failed', true);
+    } finally {
+      setUploadingLogo(false);
+      e.target.value = '';
+    }
+  };
+
+  // Direct file upload for Favicon
+  const handleDirectFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFavicon(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'branding');
+
+      const res = await fetch('/api/admin/media', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to upload favicon');
+      }
+
+      setSettings((prev: any) => ({
+        ...prev,
+        faviconUrl: data.data.publicUrl,
+        faviconMediaId: data.data.id,
+      }));
+      showNotification('Favicon uploaded successfully! Click "Save Brand Settings" to apply.');
+    } catch (err: any) {
+      showNotification(err.message || 'Upload failed', true);
+    } finally {
+      setUploadingFavicon(false);
+      e.target.value = '';
+    }
   };
 
   const handleRemoveLogo = () => {
@@ -61,6 +133,7 @@ export default function LogoFaviconSettings({
       logoUrl: null,
       logoMediaId: null,
     }));
+    showNotification('Logo cleared. Click "Save Brand Settings" to persist.');
   };
 
   const handleRemoveFavicon = () => {
@@ -69,10 +142,11 @@ export default function LogoFaviconSettings({
       faviconUrl: null,
       faviconMediaId: null,
     }));
+    showNotification('Favicon cleared. Click "Save Brand Settings" to persist.');
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSaving(true);
     try {
       const res = await fetch('/api/admin/settings', {
@@ -82,6 +156,9 @@ export default function LogoFaviconSettings({
       });
       const data = await res.json();
       if (data.success) {
+        if (data.data) {
+          setSettings((prev: any) => ({ ...prev, ...data.data }));
+        }
         showNotification('Website settings & brand identity updated successfully!');
       } else {
         showNotification(data.error || 'Failed to save settings', true);
@@ -110,7 +187,7 @@ export default function LogoFaviconSettings({
         </div>
 
         <button
-          onClick={handleSaveSettings}
+          onClick={() => handleSaveSettings()}
           disabled={isSaving}
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-xs font-bold font-heading shadow-lg shadow-purple-900/30 active:scale-95 transition-all shrink-0 cursor-pointer disabled:opacity-50"
         >
@@ -128,7 +205,7 @@ export default function LogoFaviconSettings({
               <Sparkles className="w-4 h-4 text-purple-400" />
               <h3 className="font-heading font-bold text-white text-base">Website Header & Footer Logo</h3>
             </div>
-            <span className="text-[10px] font-mono text-gray-400 uppercase">SVG / PNG Recommended</span>
+            <span className="text-[10px] font-mono text-gray-400 uppercase">SVG / PNG / WEBP</span>
           </div>
 
           <div className="p-6 rounded-2xl bg-black/60 border border-white/10 flex flex-col items-center justify-center min-h-[160px] relative group">
@@ -146,20 +223,34 @@ export default function LogoFaviconSettings({
             ) : (
               <div className="text-center space-y-2 text-gray-500">
                 <ImageIcon className="w-10 h-10 mx-auto opacity-40" />
-                <p className="text-xs">No custom logo selected. Default Scalemint vector typography is active.</p>
+                <p className="text-xs">No custom logo selected. Default Scalemint typography is active.</p>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Action Buttons: Direct Upload & Library */}
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex-1 cursor-pointer py-2.5 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+              {uploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>{uploadingLogo ? 'Uploading...' : 'Direct Upload Logo'}</span>
+              <input
+                type="file"
+                accept="image/*,.svg,.png,.webp"
+                className="hidden"
+                disabled={uploadingLogo}
+                onChange={handleDirectLogoUpload}
+              />
+            </label>
+
             <button
               type="button"
               onClick={() => handleOpenPicker('logo')}
-              className="flex-grow py-2.5 px-4 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="py-2.5 px-3.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <ImageIcon className="w-3.5 h-3.5" />
-              <span>{settings?.logoUrl ? 'Replace Logo from Media Library' : 'Select Logo from Media Library'}</span>
+              <span>Library</span>
             </button>
+
             {settings?.logoUrl && (
               <button
                 type="button"
@@ -171,6 +262,18 @@ export default function LogoFaviconSettings({
               </button>
             )}
           </div>
+
+          {/* Direct URL input fallback */}
+          <div className="pt-2">
+            <label className="text-[11px] font-mono text-gray-400 block mb-1">Or direct image URL:</label>
+            <input
+              type="text"
+              placeholder="https://... or /uploads/..."
+              value={settings?.logoUrl || ''}
+              onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-purple-500"
+            />
+          </div>
         </div>
 
         {/* Favicon Card */}
@@ -180,7 +283,7 @@ export default function LogoFaviconSettings({
               <Globe className="w-4 h-4 text-blue-400" />
               <h3 className="font-heading font-bold text-white text-base">Browser Tab Favicon (1:1)</h3>
             </div>
-            <span className="text-[10px] font-mono text-gray-400 uppercase">32x32 / 64x64 PNG or ICO</span>
+            <span className="text-[10px] font-mono text-gray-400 uppercase">ICO / PNG / SVG</span>
           </div>
 
           <div className="p-6 rounded-2xl bg-black/60 border border-white/10 flex flex-col items-center justify-center min-h-[160px]">
@@ -205,15 +308,29 @@ export default function LogoFaviconSettings({
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Action Buttons: Direct Upload & Library */}
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex-1 cursor-pointer py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+              {uploadingFavicon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>{uploadingFavicon ? 'Uploading...' : 'Direct Upload Favicon'}</span>
+              <input
+                type="file"
+                accept="image/*,.ico,.png,.svg,.webp"
+                className="hidden"
+                disabled={uploadingFavicon}
+                onChange={handleDirectFaviconUpload}
+              />
+            </label>
+
             <button
               type="button"
               onClick={() => handleOpenPicker('favicon')}
-              className="flex-grow py-2.5 px-4 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="py-2.5 px-3.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <ImageIcon className="w-3.5 h-3.5" />
-              <span>{settings?.faviconUrl ? 'Replace Favicon' : 'Select Favicon from Media Library'}</span>
+              <span>Library</span>
             </button>
+
             {settings?.faviconUrl && (
               <button
                 type="button"
@@ -224,6 +341,18 @@ export default function LogoFaviconSettings({
                 <Trash2 className="w-4 h-4" />
               </button>
             )}
+          </div>
+
+          {/* Direct URL input fallback */}
+          <div className="pt-2">
+            <label className="text-[11px] font-mono text-gray-400 block mb-1">Or direct favicon URL:</label>
+            <input
+              type="text"
+              placeholder="https://... or /uploads/..."
+              value={settings?.faviconUrl || ''}
+              onChange={(e) => setSettings({ ...settings, faviconUrl: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-blue-500"
+            />
           </div>
         </div>
       </div>

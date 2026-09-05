@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
       select: { id: true, name: true, slug: true },
     });
 
-    return NextResponse.json({ success: true, packages, services });
+    return NextResponse.json({ success: true, data: packages, packages, services });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -113,6 +114,12 @@ export async function POST(request: Request) {
       },
     });
 
+    try {
+      revalidatePath('/');
+      revalidatePath('/pricing');
+      revalidatePath('/services/[slug]', 'page');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, message: 'Package created successfully', data: pkg });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -193,6 +200,12 @@ export async function PUT(request: Request) {
       },
     });
 
+    try {
+      revalidatePath('/');
+      revalidatePath('/pricing');
+      revalidatePath('/services/[slug]', 'page');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, message: 'Package updated successfully', data: updated });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -215,6 +228,12 @@ export async function DELETE(request: Request) {
     await prisma.servicePackage.delete({
       where: { id },
     });
+
+    try {
+      revalidatePath('/');
+      revalidatePath('/pricing');
+      revalidatePath('/services/[slug]', 'page');
+    } catch (e) {}
 
     return NextResponse.json({ success: true, message: 'Package deleted successfully' });
   } catch (error: any) {
