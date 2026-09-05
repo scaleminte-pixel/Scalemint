@@ -29,16 +29,26 @@ export const metadata = {
 };
 
 export default async function ContactPage() {
-  const [settings, clientBrands] = await Promise.all([
+  const [settings, clientBrands, contactSections] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: 'global' } }),
     prisma.clientBrand.findMany({
       where: { status: 'PUBLISHED' },
       orderBy: { displayOrder: 'asc' },
       include: { logoMedia: true },
     }),
+    prisma.pageSection.findMany({
+      where: { page: 'contact' },
+    }),
   ]);
 
-  const trustHighlights = [
+  const heroSec = contactSections.find((s) => s.sectionKey === 'hero')?.content as Record<string, any> | undefined;
+  const guaranteesSec = contactSections.find((s) => s.sectionKey === 'guarantees')?.content as Record<string, any> | undefined;
+
+  const dynamicBadge = heroSec?.badge || 'DIRECT SENIOR PARTNER INQUIRY · ZERO RED TAPE';
+  const dynamicTitle = heroSec?.title || 'Let’s Build Something Exceptional Together.';
+  const dynamicSubtitle = heroSec?.subtitle || 'Connect directly with our leadership. We review your growth objectives, define your sprint scope, and provide a fixed-price roadmap within 24 hours.';
+
+  const defaultHighlights = [
     {
       title: '24-Hour Proposal Commitment',
       desc: 'No endless intake queues. A Senior Principal reviews your roadmap and provides a clear milestone scope within 1 business day.',
@@ -58,6 +68,15 @@ export default async function ContactPage() {
       color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
     },
   ];
+
+  const trustHighlights = guaranteesSec?.items && Array.isArray(guaranteesSec.items) && guaranteesSec.items.length > 0
+    ? guaranteesSec.items.map((item: any, idx: number) => ({
+        title: item.title,
+        desc: item.desc,
+        icon: defaultHighlights[idx % defaultHighlights.length].icon,
+        color: defaultHighlights[idx % defaultHighlights.length].color,
+      }))
+    : defaultHighlights;
 
   return (
     <div className="min-h-screen flex flex-col bg-agency-dark">
@@ -80,18 +99,15 @@ export default async function ContactPage() {
             <AnimateOnScroll variant="fadeUp" className="max-w-3xl mb-12 space-y-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/25 shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                <span>DIRECT SENIOR PARTNER INQUIRY · ZERO RED TAPE</span>
+                <span>{dynamicBadge}</span>
               </div>
 
               <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-                Let’s Build Something <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent">
-                  Exceptional Together.
-                </span>
+                {dynamicTitle}
               </h1>
 
               <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
-                Connect directly with our leadership. We review your growth objectives, define your sprint scope, and provide a fixed-price roadmap within 24 hours.
+                {dynamicSubtitle}
               </p>
             </AnimateOnScroll>
 

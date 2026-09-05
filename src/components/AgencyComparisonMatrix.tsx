@@ -86,7 +86,21 @@ const comparisonList: ComparisonItem[] = [
   },
 ];
 
-export default function AgencyComparisonMatrix() {
+interface AgencyComparisonMatrixProps {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  items?: any[];
+}
+
+export default function AgencyComparisonMatrix({
+  badge,
+  title,
+  subtitle,
+  items,
+}: AgencyComparisonMatrixProps = {}) {
+  const activeItems = items && Array.isArray(items) && items.length > 0 ? items : comparisonList;
+
   return (
     <div className="relative rounded-3xl border border-white/10 bg-gradient-to-b from-[#110D26] via-[#090715] to-[#04030A] p-6 sm:p-8 lg:p-10 shadow-2xl overflow-hidden backdrop-blur-2xl">
       {/* Decorative Ambient Aura */}
@@ -97,16 +111,22 @@ export default function AgencyComparisonMatrix() {
       <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 relative z-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20 mb-4 backdrop-blur-md">
           <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-          <span>The Industry Comparison</span>
+          <span>{badge || 'The Industry Comparison'}</span>
         </div>
         <h3 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-          Traditional Agencies <span className="text-gray-500 font-light">vs</span>{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-emerald-400">
-            Scalemint
-          </span>
+          {title ? (
+            title
+          ) : (
+            <>
+              Traditional Agencies <span className="text-gray-500 font-light">vs</span>{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-emerald-400">
+                Scalemint
+              </span>
+            </>
+          )}
         </h3>
         <p className="text-gray-400 text-sm sm:text-base mt-3 max-w-2xl mx-auto leading-relaxed">
-          See at a single glance why high-velocity founders switch from legacy agencies to Scalemint&apos;s agile production model.
+          {subtitle || "See at a single glance why high-velocity founders switch from legacy agencies to Scalemint's agile production model."}
         </p>
       </div>
 
@@ -137,7 +157,7 @@ export default function AgencyComparisonMatrix() {
 
             {/* List of 5 Points */}
             <div className="space-y-3.5">
-              {comparisonList.map((item, idx) => (
+              {activeItems.map((item, idx) => (
                 <div
                   key={idx}
                   className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-rose-500/25 transition-all"
@@ -194,7 +214,7 @@ export default function AgencyComparisonMatrix() {
 
             {/* List of 5 Points */}
             <div className="space-y-3.5">
-              {comparisonList.map((item, idx) => (
+              {activeItems.map((item, idx) => (
                 <div
                   key={idx}
                   className="p-4 rounded-2xl bg-white/[0.03] border border-emerald-500/25 hover:border-emerald-500/50 hover:bg-emerald-500/[0.04] transition-all"

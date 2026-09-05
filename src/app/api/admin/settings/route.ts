@@ -101,6 +101,7 @@ export async function PUT(request: Request) {
       revalidatePath('/about');
       revalidatePath('/contact');
       revalidatePath('/portfolio');
+      revalidatePath('/services/[slug]', 'page');
     } catch (e) {}
 
     return NextResponse.json({

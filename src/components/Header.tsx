@@ -121,7 +121,7 @@ export default function Header({
                 <img
                   src={logoUrl}
                   alt={siteName || 'Scalemint'}
-                  className="h-8 max-w-[150px] object-contain group-hover:scale-105 transition-transform"
+                  className="h-9 sm:h-10 md:h-11 max-w-[220px] w-auto object-contain group-hover:scale-105 transition-transform drop-shadow-md"
                 />
               ) : (
                 <>

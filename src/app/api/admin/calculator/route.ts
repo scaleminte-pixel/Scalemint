@@ -1,19 +1,31 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await requireAdmin();
+    const { searchParams } = new URL(request.url);
+    const serviceSlug = searchParams.get('service') || 'global';
+    const configId = serviceSlug === 'global' ? 'global_calculator' : `calc_${serviceSlug}`;
+
     let config = await prisma.calculatorConfig.findUnique({
-      where: { id: 'global_calculator' },
+      where: { id: configId },
     });
+
+    // If not found and not global, fall back to global as template
+    if (!config && configId !== 'global_calculator') {
+      config = await prisma.calculatorConfig.findUnique({
+        where: { id: 'global_calculator' },
+      });
+    }
 
     if (!config) {
       config = await prisma.calculatorConfig.create({
-        data: { id: 'global_calculator' },
+        data: { id: configId },
       });
     }
 
@@ -37,15 +49,38 @@ export async function PUT(request: Request) {
   try {
     await requireAdmin();
     const body = await request.json();
-    const { basePrice, currency, tierPresets, addOnOptions, minPrice, maxPrice, ctaText, ctaLink, isVisible } = body;
+    const {
+      serviceSlug = 'global',
+      basePrice,
+      currency,
+      tierPresets,
+      addOnOptions,
+      minPrice,
+      maxPrice,
+      ctaText,
+      ctaLink,
+      isVisible,
+    } = body;
+
+    const configId = serviceSlug === 'global' ? 'global_calculator' : `calc_${serviceSlug}`;
 
     const updated = await prisma.calculatorConfig.upsert({
-      where: { id: 'global_calculator' },
+      where: { id: configId },
       update: {
         basePrice: basePrice !== undefined ? parseFloat(basePrice) : undefined,
         currency: currency !== undefined ? currency : undefined,
-        tierPresets: tierPresets !== undefined ? (typeof tierPresets === 'string' ? tierPresets : JSON.stringify(tierPresets)) : undefined,
-        addOnOptions: addOnOptions !== undefined ? (typeof addOnOptions === 'string' ? addOnOptions : JSON.stringify(addOnOptions)) : undefined,
+        tierPresets:
+          tierPresets !== undefined
+            ? typeof tierPresets === 'string'
+              ? tierPresets
+              : JSON.stringify(tierPresets)
+            : undefined,
+        addOnOptions:
+          addOnOptions !== undefined
+            ? typeof addOnOptions === 'string'
+              ? addOnOptions
+              : JSON.stringify(addOnOptions)
+            : undefined,
         minPrice: minPrice !== undefined ? parseFloat(minPrice) : undefined,
         maxPrice: maxPrice !== undefined ? parseFloat(maxPrice) : undefined,
         ctaText: ctaText !== undefined ? ctaText : undefined,
@@ -53,7 +88,7 @@ export async function PUT(request: Request) {
         isVisible: isVisible !== undefined ? Boolean(isVisible) : undefined,
       },
       create: {
-        id: 'global_calculator',
+        id: configId,
         basePrice: basePrice !== undefined ? parseFloat(basePrice) : 1490,
         currency: currency || 'USD',
         tierPresets: typeof tierPresets === 'string' ? tierPresets : JSON.stringify(tierPresets || []),
@@ -66,9 +101,17 @@ export async function PUT(request: Request) {
       },
     });
 
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/services/[slug]', 'page');
+      if (serviceSlug !== 'global') {
+        revalidatePath(`/services/${serviceSlug}`, 'page');
+      }
+    } catch (e) {}
+
     return NextResponse.json({
       success: true,
-      message: 'Calculator pricing configuration updated successfully',
+      message: `Calculator pricing configuration for "${serviceSlug}" updated successfully!`,
       data: {
         ...updated,
         tierPresets: updated.tierPresets ? JSON.parse(updated.tierPresets) : [],

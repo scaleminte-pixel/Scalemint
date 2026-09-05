@@ -39,27 +39,44 @@ export default function LogoFaviconSettings({
     setMediaModalOpen(true);
   };
 
-  const handleMediaSelected = (asset: any) => {
+  // Direct persistent save helper for logo & favicon
+  const saveImmediate = async (patch: any, successMsg: string) => {
+    try {
+      const merged = { ...settings, ...patch };
+      setSettings(merged);
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(merged),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showNotification(successMsg);
+      } else {
+        throw new Error(data.error || 'Failed to persist settings');
+      }
+    } catch (err: any) {
+      showNotification(err.message || 'Error saving settings', true);
+    }
+  };
+
+  const handleMediaSelected = async (asset: any) => {
     if (pickerTarget === 'logo') {
-      setSettings((prev: any) => ({
-        ...prev,
-        logoUrl: asset.publicUrl,
-        logoMediaId: asset.id,
-      }));
-      showNotification('Logo selected from Media Library');
+      await saveImmediate(
+        { logoUrl: asset.publicUrl, logoMediaId: asset.id },
+        'Logo selected and applied live to website!'
+      );
     } else if (pickerTarget === 'favicon') {
-      setSettings((prev: any) => ({
-        ...prev,
-        faviconUrl: asset.publicUrl,
-        faviconMediaId: asset.id,
-      }));
-      showNotification('Favicon selected from Media Library');
+      await saveImmediate(
+        { faviconUrl: asset.publicUrl, faviconMediaId: asset.id },
+        'Favicon selected and applied live to website!'
+      );
     }
     setMediaModalOpen(false);
     setPickerTarget(null);
   };
 
-  // Direct file upload for Logo
+  // Direct file upload for Logo with automatic live persistence
   const handleDirectLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -79,12 +96,10 @@ export default function LogoFaviconSettings({
         throw new Error(data.error || 'Failed to upload logo image');
       }
 
-      setSettings((prev: any) => ({
-        ...prev,
-        logoUrl: data.data.publicUrl,
-        logoMediaId: data.data.id,
-      }));
-      showNotification('Logo uploaded successfully! Click "Save Brand Settings" to apply.');
+      await saveImmediate(
+        { logoUrl: data.data.publicUrl, logoMediaId: data.data.id },
+        'Logo uploaded & applied live to website header & footer!'
+      );
     } catch (err: any) {
       showNotification(err.message || 'Upload failed', true);
     } finally {
@@ -93,7 +108,7 @@ export default function LogoFaviconSettings({
     }
   };
 
-  // Direct file upload for Favicon
+  // Direct file upload for Favicon with automatic live persistence
   const handleDirectFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -113,12 +128,10 @@ export default function LogoFaviconSettings({
         throw new Error(data.error || 'Failed to upload favicon');
       }
 
-      setSettings((prev: any) => ({
-        ...prev,
-        faviconUrl: data.data.publicUrl,
-        faviconMediaId: data.data.id,
-      }));
-      showNotification('Favicon uploaded successfully! Click "Save Brand Settings" to apply.');
+      await saveImmediate(
+        { faviconUrl: data.data.publicUrl, faviconMediaId: data.data.id },
+        'Favicon uploaded & applied live to browser tabs!'
+      );
     } catch (err: any) {
       showNotification(err.message || 'Upload failed', true);
     } finally {
@@ -127,22 +140,18 @@ export default function LogoFaviconSettings({
     }
   };
 
-  const handleRemoveLogo = () => {
-    setSettings((prev: any) => ({
-      ...prev,
-      logoUrl: null,
-      logoMediaId: null,
-    }));
-    showNotification('Logo cleared. Click "Save Brand Settings" to persist.');
+  const handleRemoveLogo = async () => {
+    await saveImmediate(
+      { logoUrl: null, logoMediaId: null },
+      'Logo removed. Default Scalemint branding restored.'
+    );
   };
 
-  const handleRemoveFavicon = () => {
-    setSettings((prev: any) => ({
-      ...prev,
-      faviconUrl: null,
-      faviconMediaId: null,
-    }));
-    showNotification('Favicon cleared. Click "Save Brand Settings" to persist.');
+  const handleRemoveFavicon = async () => {
+    await saveImmediate(
+      { faviconUrl: null, faviconMediaId: null },
+      'Favicon removed. Default browser icon restored.'
+    );
   };
 
   const handleSaveSettings = async (e?: React.FormEvent) => {
@@ -263,16 +272,26 @@ export default function LogoFaviconSettings({
             )}
           </div>
 
-          {/* Direct URL input fallback */}
-          <div className="pt-2">
+          {/* Direct URL input fallback and In-Card Save */}
+          <div className="pt-2 space-y-2">
             <label className="text-[11px] font-mono text-gray-400 block mb-1">Or direct image URL:</label>
-            <input
-              type="text"
-              placeholder="https://... or /uploads/..."
-              value={settings?.logoUrl || ''}
-              onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-purple-500"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="https://... or /uploads/..."
+                value={settings?.logoUrl || ''}
+                onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                className="flex-1 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-purple-500"
+              />
+              <button
+                type="button"
+                onClick={() => saveImmediate({ logoUrl: settings?.logoUrl }, 'Logo saved and applied live to website!')}
+                className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save Logo</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -343,16 +362,26 @@ export default function LogoFaviconSettings({
             )}
           </div>
 
-          {/* Direct URL input fallback */}
-          <div className="pt-2">
+          {/* Direct URL input fallback and In-Card Save */}
+          <div className="pt-2 space-y-2">
             <label className="text-[11px] font-mono text-gray-400 block mb-1">Or direct favicon URL:</label>
-            <input
-              type="text"
-              placeholder="https://... or /uploads/..."
-              value={settings?.faviconUrl || ''}
-              onChange={(e) => setSettings({ ...settings, faviconUrl: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-blue-500"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="https://... or /uploads/..."
+                value={settings?.faviconUrl || ''}
+                onChange={(e) => setSettings({ ...settings, faviconUrl: e.target.value })}
+                className="flex-1 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => saveImmediate({ faviconUrl: settings?.faviconUrl }, 'Favicon saved and applied live to website!')}
+                className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save Favicon</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

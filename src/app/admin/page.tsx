@@ -54,6 +54,8 @@ import LogoFaviconSettings from '@/components/admin/LogoFaviconSettings';
 import BlogPostManager from '@/components/admin/BlogPostManager';
 import ServiceManager from '@/components/admin/ServiceManager';
 import HomepageSectionsManager from '@/components/admin/HomepageSectionsManager';
+import ServicePagesCMS from '@/components/admin/ServicePagesCMS';
+import AboutContactCMS from '@/components/admin/AboutContactCMS';
 
 type TabKey =
   | 'overview'
@@ -65,6 +67,8 @@ type TabKey =
   | 'portfolio'
   | 'services'
   | 'homepage'
+  | 'service_cms'
+  | 'about_contact_cms'
   | 'media'
   | 'legal'
   | 'testimonials'
@@ -527,7 +531,9 @@ export default function AdminDashboardPage() {
               { id: 'bookings', label: 'Strategy Bookings', icon: Calendar, badge: bookings.filter((b) => b.status === 'PENDING').length },
               { id: 'portfolio', label: 'Portfolio CMS', icon: Sparkles, badge: portfolioProjects.length },
               { id: 'services', label: 'Core Services', icon: Briefcase, badge: services.length },
-              { id: 'homepage', label: 'Page Sections CMS', icon: FileText },
+              { id: 'homepage', label: 'Homepage Sections', icon: FileText },
+              { id: 'service_cms', label: 'Service Pages CMS', icon: Scale },
+              { id: 'about_contact_cms', label: 'About & Contact CMS', icon: Layers },
               { id: 'media', label: 'Central Media Library', icon: ImageIcon, badge: mediaAssets.length },
               { id: 'legal', label: 'Terms & Privacy Policies', icon: Scale },
               { id: 'testimonials', label: 'Testimonials', icon: Star, badge: testimonials.length },
@@ -1500,6 +1506,16 @@ export default function AdminDashboardPage() {
         {/* TAB 7: PAGE SECTIONS CMS (Isolated Atomic Updates) */}
         {activeTab === 'homepage' && (
           <HomepageSectionsManager showNotification={showNotification} />
+        )}
+
+        {/* TAB 7B: SERVICE DETAIL PAGES CMS (Comparison Matrix, Roadmap, Hero) */}
+        {activeTab === 'service_cms' && (
+          <ServicePagesCMS showNotification={showNotification} />
+        )}
+
+        {/* TAB 7C: ABOUT & CONTACT CMS */}
+        {activeTab === 'about_contact_cms' && (
+          <AboutContactCMS showNotification={showNotification} />
         )}
 
         {/* TAB 8: TESTIMONIALS CMS */}

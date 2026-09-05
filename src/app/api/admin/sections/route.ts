@@ -64,10 +64,18 @@ export async function PUT(request: Request) {
       },
     });
 
-    // Purge cached public homepage to reflect CMS update immediately
+    // Purge cached public pages to reflect CMS update immediately
     try {
       revalidatePath('/', 'page');
       revalidatePath('/', 'layout');
+      if (page === 'about') {
+        revalidatePath('/about', 'page');
+      } else if (page === 'contact') {
+        revalidatePath('/contact', 'page');
+      } else {
+        revalidatePath(`/services/${page}`, 'page');
+        revalidatePath('/services/[slug]', 'page');
+      }
     } catch (e) {}
 
     return NextResponse.json({

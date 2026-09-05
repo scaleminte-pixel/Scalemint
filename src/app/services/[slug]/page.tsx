@@ -106,7 +106,18 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
   const matchingCatSlug = categorySlugMap[params.slug] || 'branding';
 
-  const [settings, service, allServices, clientBrands, testimonials, faqs, portfolioProjects] = await Promise.all([
+  const [
+    settings,
+    service,
+    allServices,
+    clientBrands,
+    testimonials,
+    faqs,
+    portfolioProjects,
+    serviceCalcConfig,
+    globalCalcConfig,
+    serviceSections,
+  ] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: 'global' } }),
     prisma.service.findUnique({
       where: { slug: params.slug },
@@ -155,6 +166,9 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         coverMedia: true,
       },
     }),
+    prisma.calculatorConfig.findUnique({ where: { id: `calc_${params.slug}` } }),
+    prisma.calculatorConfig.findUnique({ where: { id: 'global_calculator' } }),
+    prisma.pageSection.findMany({ where: { page: params.slug } }),
   ]);
 
   if (!service || service.status !== 'PUBLISHED') {
@@ -175,6 +189,35 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
   };
 
   const displayImage = service.coverMedia?.publicUrl || visual.image;
+
+  const secMap: Record<string, any> = {};
+  serviceSections.forEach((s) => {
+    secMap[s.sectionKey] = s;
+  });
+
+  const heroSec = secMap['hero'];
+  const comparisonSec = secMap['comparison'];
+  const processSec = secMap['process'];
+  const calcConfig = serviceCalcConfig || globalCalcConfig;
+
+  let comparisonBadge = 'The Industry Comparison';
+  let comparisonTitle: any = undefined;
+  let comparisonSubtitle: string | undefined = undefined;
+  let comparisonItems: any[] | undefined = undefined;
+
+  if (comparisonSec) {
+    if (comparisonSec.title) comparisonTitle = comparisonSec.title;
+    if (comparisonSec.subtitle) comparisonSubtitle = comparisonSec.subtitle;
+    if (comparisonSec.metadata) {
+      try {
+        const cMeta = JSON.parse(comparisonSec.metadata);
+        if (cMeta.badge) comparisonBadge = cMeta.badge;
+        if (Array.isArray(cMeta.items) && cMeta.items.length > 0) {
+          comparisonItems = cMeta.items;
+        }
+      } catch (e) {}
+    }
+  }
 
   const sprintSteps = [
     {
@@ -202,6 +245,58 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
       deliverable: 'Complete Master Files & Deployment',
     },
   ];
+
+  let customRoadmapSteps = sprintSteps;
+  let roadmapBadge = 'Battle-Tested Delivery Cadence';
+  let roadmapTitle = `How We Execute Your ${service.name} Sprint`;
+  let roadmapSubtitle = 'Structured sprints with transparent milestones, direct asynchronous communication, and zero bureaucratic bloat.';
+
+  if (processSec) {
+    if (processSec.title) roadmapTitle = processSec.title;
+    if (processSec.subtitle) roadmapSubtitle = processSec.subtitle;
+    if (processSec.metadata) {
+      try {
+        const pMeta = JSON.parse(processSec.metadata);
+        if (pMeta.badge) roadmapBadge = pMeta.badge;
+        if (Array.isArray(pMeta.steps) && pMeta.steps.length > 0) {
+          customRoadmapSteps = pMeta.steps;
+        }
+      } catch (e) {}
+    }
+  }
+
+  let heroBadge = `// DISCIPLINE ${visual.index} • SPECIALIZED CRAFT`;
+  let livePillText = 'Q2 Sprint Slots Active';
+  let trustPills = [
+    'Senior-Led Direction',
+    '7-14 Day Delivery Cadence',
+    '100% Unrestricted IP Handover',
+  ];
+  let heroHeadline = service.name;
+  let heroTagline = service.tagline;
+  let heroDesc = service.fullDesc || service.shortDesc;
+  let heroCtaText = `Initiate ${service.name} Sprint`;
+  let heroCtaLink = '#contact';
+  let startingPriceText = service.startingPrice;
+
+  if (heroSec) {
+    if (heroSec.title) heroHeadline = heroSec.title;
+    if (heroSec.subtitle) heroTagline = heroSec.subtitle;
+    if (heroSec.content) heroDesc = heroSec.content;
+    if (heroSec.ctaText) heroCtaText = heroSec.ctaText;
+    if (heroSec.ctaLink) heroCtaLink = heroSec.ctaLink;
+    if (heroSec.metadata) {
+      try {
+        const hMeta = JSON.parse(heroSec.metadata);
+        if (hMeta.badge) heroBadge = hMeta.badge;
+        if (hMeta.livePill) livePillText = hMeta.livePill;
+        if (hMeta.startingPrice) startingPriceText = hMeta.startingPrice;
+        if (Array.isArray(hMeta.trustBadges) && hMeta.trustBadges.length > 0) {
+          trustPills = hMeta.trustBadges;
+        }
+      } catch (e) {}
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-agency-dark">
@@ -260,61 +355,55 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
                     <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                    <span>// DISCIPLINE {visual.index} • SPECIALIZED CRAFT</span>
+                    <span>{heroBadge}</span>
                   </div>
 
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Q2 Sprint Slots Active</span>
+                    <span>{livePillText}</span>
                   </div>
                 </div>
 
                 {/* Primary Hero Title */}
                 <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
-                  {service.name}
+                  {heroHeadline}
                 </h1>
 
                 {/* Tagline */}
-                {service.tagline && (
+                {heroTagline && (
                   <p className="text-xl sm:text-2xl text-purple-200 font-medium leading-relaxed">
-                    {service.tagline}
+                    {heroTagline}
                   </p>
                 )}
 
                 {/* Description */}
                 <p className="text-gray-300 text-base sm:text-lg leading-relaxed max-w-2xl">
-                  {service.fullDesc || service.shortDesc}
+                  {heroDesc}
                 </p>
 
                 {/* Senior Quality Badges */}
                 <div className="pt-2 flex flex-wrap items-center gap-3 text-xs font-medium text-gray-300">
-                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
-                    <Award className="w-4 h-4 text-purple-400" />
-                    <span>Senior-Led Direction</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
-                    <Clock className="w-4 h-4 text-blue-400" />
-                    <span>7-14 Day Delivery Cadence</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>100% Unrestricted IP Handover</span>
-                  </div>
+                  {trustPills.map((pill: string, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
+                      {idx === 0 ? <Award className="w-4 h-4 text-purple-400" /> : idx === 1 ? <Clock className="w-4 h-4 text-blue-400" /> : <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+                      <span>{pill}</span>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Action Buttons */}
                 <div className="pt-4 flex flex-wrap items-center gap-4">
                   <a
-                    href="#contact"
+                    href={heroCtaLink}
                     className="px-8 py-4 rounded-full font-heading font-bold text-sm bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-xl shadow-purple-600/30 active:scale-95 transition-all flex items-center gap-2.5 group"
                   >
-                    <span>Initiate {service.name} Sprint</span>
+                    <span>{heroCtaText}</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </a>
 
-                  {service.startingPrice && (
+                  {startingPriceText && (
                     <div className="px-5 py-4 rounded-full bg-white/[0.03] text-xs sm:text-sm font-semibold text-amber-300 border border-white/10 font-mono">
-                      Starting: {service.startingPrice}
+                      Starting: {startingPriceText}
                     </div>
                   )}
                 </div>
@@ -476,6 +565,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
               <ServiceScopeCalculator
                 serviceName={service.name}
                 serviceSlug={service.slug}
+                config={calcConfig}
               />
             </AnimateOnScroll>
           </div>
@@ -485,7 +575,12 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         <section className="py-14 sm:py-16 border-t border-white/[0.06] relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <AnimateOnScroll variant="fadeUp">
-              <AgencyComparisonMatrix />
+              <AgencyComparisonMatrix
+                badge={comparisonBadge}
+                title={comparisonTitle}
+                subtitle={comparisonSubtitle}
+                items={comparisonItems}
+              />
             </AnimateOnScroll>
           </div>
         </section>
@@ -496,18 +591,18 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
             <AnimateOnScroll variant="fadeUp" className="text-center max-w-3xl mx-auto space-y-3 mb-8">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/[0.04] text-purple-300 border border-white/10">
                 <Repeat className="w-3.5 h-3.5 text-purple-400" />
-                <span>Battle-Tested Delivery Cadence</span>
+                <span>{roadmapBadge}</span>
               </div>
               <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white">
-                How We Execute Your {service.name} Sprint
+                {roadmapTitle}
               </h2>
               <p className="text-gray-400 text-sm sm:text-base">
-                Structured sprints with transparent milestones, direct asynchronous communication, and zero bureaucratic bloat.
+                {roadmapSubtitle}
               </p>
             </AnimateOnScroll>
 
             <StaggerContainer staggerDelay={0.12} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {sprintSteps.map((step, idx) => (
+              {customRoadmapSteps.map((step, idx) => (
                 <StaggerItem key={idx} variant="scaleUp">
                   <div className="rounded-2xl bg-white/[0.02] border border-white/[0.08] p-7 hover:border-purple-500/40 transition-all duration-300 h-full flex flex-col justify-between space-y-4 group">
                     <div>

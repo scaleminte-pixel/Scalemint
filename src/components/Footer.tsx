@@ -50,7 +50,7 @@ export default function Footer({
                 <img
                   src={logoUrl}
                   alt={siteName || 'Scalemint'}
-                  className="h-9 max-w-[160px] object-contain"
+                  className="h-10 sm:h-11 max-w-[220px] w-auto object-contain drop-shadow-md"
                 />
               ) : (
                 <>

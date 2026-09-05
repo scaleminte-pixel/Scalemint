@@ -36,7 +36,7 @@ export const metadata = {
 };
 
 export default async function AboutPage() {
-  const [settings, clientBrands, testimonials, recentProjects] = await Promise.all([
+  const [settings, clientBrands, testimonials, recentProjects, aboutSections] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: 'global' } }),
     prisma.clientBrand.findMany({
       where: { status: 'PUBLISHED' },
@@ -57,6 +57,7 @@ export default async function AboutPage() {
         coverMedia: true,
       },
     }),
+    prisma.pageSection.findMany({ where: { page: 'about' } }),
   ]);
 
   const recentPartnerships = [
@@ -148,6 +149,111 @@ export default async function AboutPage() {
     },
   ];
 
+  const secMap: Record<string, any> = {};
+  aboutSections.forEach((s) => {
+    secMap[s.sectionKey] = s;
+  });
+
+  const heroSec = secMap['hero'];
+  const thesisSec = secMap['thesis'];
+  const processSec = secMap['process'];
+
+  let heroBadge = 'THE SCALEMINT COLLECTIVE · WHO WE ARE';
+  let heroTitle = 'Architects of Distinction for Category-Defining Brands';
+  let heroSubtitle = 'We bridge the costly disconnect between brand prestige, sub-second code engineering, and precision acquisition. One unified senior squad. Zero bloated overhead.';
+  let heroStats = [
+    { value: '360°', label: 'Unified Discipline (Brand + Code + Media)', color: 'text-purple-400' },
+    { value: '99+', label: 'Google Core Web Vitals Standard', color: 'text-blue-400' },
+    { value: '100%', label: 'Direct IP & Source Code Ownership', color: 'text-emerald-400' },
+    { value: '6 Wks', label: 'Average End-to-End Sprint Velocity', color: 'text-amber-400' },
+  ];
+
+  if (heroSec) {
+    if (heroSec.title) heroTitle = heroSec.title;
+    if (heroSec.subtitle) heroSubtitle = heroSec.subtitle;
+    if (heroSec.metadata) {
+      try {
+        const hMeta = JSON.parse(heroSec.metadata);
+        if (hMeta.badge) heroBadge = hMeta.badge;
+        if (Array.isArray(hMeta.stats) && hMeta.stats.length > 0) {
+          heroStats = hMeta.stats;
+        }
+      } catch (e) {}
+    }
+  }
+
+  let thesisBadge = 'Our Founding Thesis';
+  let thesisTitle = 'Why We Built Scalemint: The End of Fragmented Agency Bloat';
+  let thesisDesc1 = 'Most founders face an impossible choice: hire multiple specialized boutique agencies that never talk to each other, or pay exorbitant monthly retainers to legacy agencies where your work is handed off to inexperienced juniors.';
+  let thesisDesc2 = 'The designer creates beautiful vectors that cannot convert. The developer writes code that ignores aesthetics. The media buyer blames the creative assets for lackluster ROAS. Everyone points fingers; your runway burns.';
+  let standardTitle = 'The Scalemint Standard:';
+  let standardText = 'We assemble a single, cross-functional squad of senior principals under one roof. Your visual identity, Next.js tech architecture, and customer acquisition engine work in synchronized harmony from day one.';
+  let nonNegotiablesTitle = 'Our Studio Non-Negotiables';
+  let nonNegotiablesList = [
+    {
+      title: '100% IP & Source Handover',
+      desc: 'You own every Figma vector, Next.js repository, raw 4K footage master, and ad account. Zero hostage-holding.',
+      icon: Lock,
+    },
+    {
+      title: 'Direct Senior Principal Access',
+      desc: 'You communicate directly with the lead designers and engineers building your artifacts via private Slack and daily Loom video walkthroughs.',
+      icon: Users,
+    },
+    {
+      title: 'Zero Corporate Bloat',
+      desc: 'No account managers, no layers of bureaucracy, and no endless status calls. Pure sprint execution focused on deliverables.',
+      icon: Zap,
+    },
+    {
+      title: 'Ironclad Enterprise NDAs',
+      desc: 'Strict confidentiality agreements standard for all client engagements, protecting proprietary algorithms and brand strategies.',
+      icon: ShieldCheck,
+    },
+  ];
+
+  if (thesisSec) {
+    if (thesisSec.title) thesisTitle = thesisSec.title;
+    if (thesisSec.subtitle) thesisDesc1 = thesisSec.subtitle;
+    if (thesisSec.content) {
+      const parts = thesisSec.content.split('\n\n');
+      if (parts[0]) thesisDesc2 = parts[0];
+      if (parts[1]) standardText = parts[1];
+    }
+    if (thesisSec.metadata) {
+      try {
+        const tMeta = JSON.parse(thesisSec.metadata);
+        if (tMeta.badge) thesisBadge = tMeta.badge;
+        if (tMeta.nonNegotiablesTitle) nonNegotiablesTitle = tMeta.nonNegotiablesTitle;
+        if (Array.isArray(tMeta.nonNegotiables) && tMeta.nonNegotiables.length > 0) {
+          nonNegotiablesList = tMeta.nonNegotiables.map((item: any, i: number) => ({
+            ...item,
+            icon: i === 0 ? Lock : i === 1 ? Users : i === 2 ? Zap : ShieldCheck,
+          }));
+        }
+      } catch (e) {}
+    }
+  }
+
+  let customAboutProcess = processSteps;
+  let aboutProcessBadge = 'Structured Delivery Cadence';
+  let aboutProcessTitle = 'How We Work: The 5-Stage Delivery Process';
+  let aboutProcessSubtitle = 'Predictable milestones, asynchronous transparency, and disciplined sprint cadences with zero guesswork.';
+
+  if (processSec) {
+    if (processSec.title) aboutProcessTitle = processSec.title;
+    if (processSec.subtitle) aboutProcessSubtitle = processSec.subtitle;
+    if (processSec.metadata) {
+      try {
+        const pMeta = JSON.parse(processSec.metadata);
+        if (pMeta.badge) aboutProcessBadge = pMeta.badge;
+        if (Array.isArray(pMeta.steps) && pMeta.steps.length > 0) {
+          customAboutProcess = pMeta.steps;
+        }
+      } catch (e) {}
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-agency-dark">
       <Header
@@ -168,35 +274,27 @@ export default async function AboutPage() {
             <AnimateOnScroll variant="fadeUp" className="max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/25 shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                <span>THE SCALEMINT COLLECTIVE · WHO WE ARE</span>
+                <span>{heroBadge}</span>
               </div>
 
               <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-                Architects of Distinction for <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent">
-                  Category-Defining Brands
-                </span>
+                {heroTitle}
               </h1>
 
               <p className="text-gray-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-                We bridge the costly disconnect between brand prestige, sub-second code engineering, and precision acquisition. One unified senior squad. Zero bloated overhead.
+                {heroSubtitle}
               </p>
             </AnimateOnScroll>
 
             {/* Credibility Key Stats */}
             <AnimateOnScroll variant="scaleUp" delay={0.2} className="mt-12 max-w-5xl mx-auto">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                {[
-                  { value: '360°', label: 'Unified Discipline (Brand + Code + Media)', color: 'text-purple-400' },
-                  { value: '99+', label: 'Google Core Web Vitals Standard', color: 'text-blue-400' },
-                  { value: '100%', label: 'Direct IP & Source Code Ownership', color: 'text-emerald-400' },
-                  { value: '6 Wks', label: 'Average End-to-End Sprint Velocity', color: 'text-amber-400' },
-                ].map((stat, i) => (
+                {heroStats.map((stat, i) => (
                   <div
                     key={i}
                     className="p-6 rounded-2xl glass-card border border-white/[0.08] hover:border-purple-500/30 transition-all text-left space-y-2"
                   >
-                    <div className={`font-heading text-3xl sm:text-4xl font-black ${stat.color}`}>
+                    <div className={`font-heading text-3xl sm:text-4xl font-black ${stat.color || 'text-purple-400'}`}>
                       {stat.value}
                     </div>
                     <div className="text-xs text-gray-400 font-medium leading-relaxed">
@@ -223,27 +321,27 @@ export default async function AboutPage() {
               <AnimateOnScroll variant="fadeLeft" className="lg:col-span-6 space-y-5">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/[0.04] text-purple-300 border border-white/10">
                   <Compass className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Our Founding Thesis</span>
+                  <span>{thesisBadge}</span>
                 </div>
 
                 <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                  Why We Built Scalemint: The End of Fragmented Agency Bloat
+                  {thesisTitle}
                 </h2>
 
                 <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
-                  Most founders face an impossible choice: hire multiple specialized boutique agencies that never talk to each other, or pay exorbitant monthly retainers to legacy agencies where your work is handed off to inexperienced juniors.
+                  {thesisDesc1}
                 </p>
 
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  The designer creates beautiful vectors that cannot convert. The developer writes code that ignores aesthetics. The media buyer blames the creative assets for lackluster ROAS. Everyone points fingers; your runway burns.
+                  {thesisDesc2}
                 </p>
 
                 <div className="p-5 rounded-2xl bg-purple-900/15 border border-purple-500/25 space-y-2">
                   <span className="text-xs font-mono font-bold text-purple-300 uppercase tracking-wider block">
-                    The Scalemint Standard:
+                    {standardTitle}
                   </span>
                   <p className="text-xs sm:text-sm text-gray-200 leading-relaxed font-medium">
-                    We assemble a single, cross-functional squad of senior principals under one roof. Your visual identity, Next.js tech architecture, and customer acquisition engine work in synchronized harmony from day one.
+                    {standardText}
                   </p>
                 </div>
               </AnimateOnScroll>
@@ -253,7 +351,7 @@ export default async function AboutPage() {
                 <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#130F26] via-[#0E0C1C] to-[#070512] p-7 sm:p-8 space-y-6">
                   <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
                     <h3 className="font-heading font-bold text-xl text-white">
-                      Our Studio Non-Negotiables
+                      {nonNegotiablesTitle}
                     </h3>
                     <span className="text-xs font-mono text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
                       Standard Terms
@@ -261,29 +359,8 @@ export default async function AboutPage() {
                   </div>
 
                   <div className="space-y-4">
-                    {[
-                      {
-                        title: '100% IP & Source Handover',
-                        desc: 'You own every Figma vector, Next.js repository, raw 4K footage master, and ad account. Zero hostage-holding.',
-                        icon: Lock,
-                      },
-                      {
-                        title: 'Direct Senior Principal Access',
-                        desc: 'You communicate directly with the lead designers and engineers building your artifacts via private Slack and daily Loom video walkthroughs.',
-                        icon: Users,
-                      },
-                      {
-                        title: 'Zero Corporate Bloat',
-                        desc: 'No account managers, no layers of bureaucracy, and no endless status calls. Pure sprint execution focused on deliverables.',
-                        icon: Zap,
-                      },
-                      {
-                        title: 'Ironclad Enterprise NDAs',
-                        desc: 'Strict confidentiality agreements standard for all client engagements, protecting proprietary algorithms and brand strategies.',
-                        icon: ShieldCheck,
-                      },
-                    ].map((item, idx) => {
-                      const Icon = item.icon;
+                    {nonNegotiablesList.map((item, idx) => {
+                      const Icon = item.icon || ShieldCheck;
                       return (
                         <div
                           key={idx}
@@ -293,9 +370,16 @@ export default async function AboutPage() {
                             <Icon className="w-5 h-5" />
                           </div>
                           <div className="space-y-1">
-                            <h4 className="font-heading font-bold text-sm text-white">
-                              {item.title}
-                            </h4>
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-heading font-bold text-sm text-white">
+                                {item.title}
+                              </h4>
+                              {(item as any).badge && (
+                                <span className="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-md">
+                                  {(item as any).badge}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-gray-400 leading-relaxed">
                               {item.desc}
                             </p>
@@ -381,18 +465,18 @@ export default async function AboutPage() {
             <AnimateOnScroll variant="fadeUp" className="text-center max-w-3xl mx-auto space-y-3 mb-12">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/[0.04] text-purple-300 border border-white/10">
                 <Clock className="w-3.5 h-3.5 text-purple-400" />
-                <span>Structured Delivery Cadence</span>
+                <span>{aboutProcessBadge}</span>
               </div>
               <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                How We Work: The 5-Stage Delivery Process
+                {aboutProcessTitle}
               </h2>
               <p className="text-gray-400 text-sm sm:text-base">
-                Predictable milestones, asynchronous transparency, and disciplined sprint cadences with zero guesswork.
+                {aboutProcessSubtitle}
               </p>
             </AnimateOnScroll>
 
             <div className="space-y-4 max-w-4xl mx-auto">
-              {processSteps.map((step, idx) => (
+              {customAboutProcess.map((step, idx) => (
                 <AnimateOnScroll key={idx} variant="fadeUp" delay={idx * 0.08}>
                   <div className="p-6 sm:p-7 rounded-2xl glass-card border border-white/[0.08] hover:border-purple-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-6 group">
                     <div className="flex items-start gap-4">
