@@ -119,9 +119,27 @@ export default function ClientsMarquee({
   title = 'Engineered For Visionary Founders & Category Leaders Scaling $10M–$100M+',
   subtitle,
   variant = 'home',
+  clients = [],
 }: ClientsMarqueeProps) {
+  const hasDbClients = clients && clients.length > 0;
+
+  // If dynamic clients are provided from CMS, format them
+  const clientList = hasDbClients
+    ? clients.map((c, idx) => ({
+        id: c.id || `c-${idx}`,
+        name: c.name,
+        logoUrl: c.logoMedia?.publicUrl || null,
+        svg: brandLogos[idx % brandLogos.length]?.svg || null,
+      }))
+    : brandLogos.map((b, idx) => ({
+        id: `b-${idx}`,
+        name: b.name,
+        logoUrl: null,
+        svg: b.svg,
+      }));
+
   // Duplicate for seamless 360 infinite loop
-  const duplicated = [...brandLogos, ...brandLogos];
+  const duplicated = [...clientList, ...clientList];
 
   return (
     <section className="relative overflow-hidden py-7 sm:py-9 bg-gradient-to-b from-[#06050C] via-[#0B0917] to-[#06050C] border-y border-white/[0.08]">
@@ -152,7 +170,19 @@ export default function ClientsMarquee({
               className="flex items-center justify-center shrink-0 cursor-default group"
             >
               <div className="px-6 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-white/80 group-hover:text-white group-hover:bg-white/[0.07] group-hover:border-purple-500/40 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all duration-300 backdrop-blur-sm flex items-center">
-                {brand.svg}
+                {brand.logoUrl ? (
+                  <img
+                    src={brand.logoUrl}
+                    alt={brand.name}
+                    className="h-7 sm:h-8 w-auto max-w-[150px] object-contain filter brightness-90 contrast-125 group-hover:brightness-100 transition-all"
+                  />
+                ) : brand.svg ? (
+                  brand.svg
+                ) : (
+                  <span className="font-heading font-black text-sm tracking-widest text-white/90 uppercase">
+                    {brand.name}
+                  </span>
+                )}
               </div>
             </div>
           ))}

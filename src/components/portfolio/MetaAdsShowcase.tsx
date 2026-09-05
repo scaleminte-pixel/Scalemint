@@ -196,10 +196,26 @@ const metaCampaigns: MetaCampaign[] = [
 ];
 
 export default function MetaAdsShowcase({ projects }: MetaAdsShowcaseProps) {
-  const [activeTab, setActiveTab] = useState<string>(metaCampaigns[0].id);
+  const campaigns: MetaCampaign[] = (projects && projects.length > 0)
+    ? projects.map((p, idx) => {
+        const fallback = metaCampaigns[idx % metaCampaigns.length];
+        return {
+          ...fallback,
+          id: p.id || p.slug || fallback.id,
+          tabLabel: p.title || fallback.tabLabel,
+          clientName: p.clientName || fallback.clientName,
+          primaryText: p.shortDesc || fallback.primaryText,
+          headline: p.title || fallback.headline,
+          mediaImage: p.coverMedia?.publicUrl || fallback.mediaImage,
+          roas: p.results || fallback.roas,
+        };
+      })
+    : metaCampaigns;
+
+  const [activeTab, setActiveTab] = useState<string>(campaigns[0]?.id || metaCampaigns[0].id);
 
   const activeCampaign =
-    metaCampaigns.find((c) => c.id === activeTab) || metaCampaigns[0];
+    campaigns.find((c) => c.id === activeTab) || campaigns[0] || metaCampaigns[0];
 
   return (
     <section
@@ -240,7 +256,7 @@ export default function MetaAdsShowcase({ projects }: MetaAdsShowcaseProps) {
 
         {/* Industry Campaign Switcher */}
         <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-8 no-scrollbar">
-          {metaCampaigns.map((camp) => {
+          {campaigns.map((camp) => {
             const isSelected = camp.id === activeTab;
             return (
               <button

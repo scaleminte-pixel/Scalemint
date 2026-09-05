@@ -48,15 +48,26 @@ export async function PUT(request: Request) {
     await requireAdmin();
     const body = await request.json();
 
+    let resolvedLogoUrl = body.logoUrl;
+    if (body.logoMediaId) {
+      const media = await prisma.mediaAsset.findUnique({ where: { id: body.logoMediaId } });
+      if (media) resolvedLogoUrl = media.publicUrl;
+    }
+    let resolvedFaviconUrl = body.faviconUrl;
+    if (body.faviconMediaId) {
+      const favMedia = await prisma.mediaAsset.findUnique({ where: { id: body.faviconMediaId } });
+      if (favMedia) resolvedFaviconUrl = favMedia.publicUrl;
+    }
+
     const updated = await prisma.siteSettings.upsert({
       where: { id: 'global' },
       update: {
         siteName: body.siteName !== undefined ? body.siteName : undefined,
         tagline: body.tagline !== undefined ? body.tagline : undefined,
         logoMediaId: body.logoMediaId !== undefined ? body.logoMediaId : undefined,
-        logoUrl: body.logoUrl !== undefined ? body.logoUrl : undefined,
+        logoUrl: resolvedLogoUrl !== undefined ? resolvedLogoUrl : undefined,
         faviconMediaId: body.faviconMediaId !== undefined ? body.faviconMediaId : undefined,
-        faviconUrl: body.faviconUrl !== undefined ? body.faviconUrl : undefined,
+        faviconUrl: resolvedFaviconUrl !== undefined ? resolvedFaviconUrl : undefined,
         contactEmail: body.contactEmail !== undefined ? body.contactEmail : undefined,
         contactPhone: body.contactPhone !== undefined ? body.contactPhone : undefined,
         whatsappNumber: body.whatsappNumber !== undefined ? body.whatsappNumber : undefined,
@@ -75,10 +86,17 @@ export async function PUT(request: Request) {
         tagline: body.tagline || '360° Creative & Digital Growth Partner',
         contactEmail: body.contactEmail || 'hello@scalemint.com',
         logoMediaId: body.logoMediaId || null,
+        logoUrl: resolvedLogoUrl || null,
         faviconMediaId: body.faviconMediaId || null,
+        faviconUrl: resolvedFaviconUrl || null,
         socialLinks: body.socialLinks ? (typeof body.socialLinks === 'string' ? body.socialLinks : JSON.stringify(body.socialLinks)) : undefined,
       },
     });
+
+    const { revalidatePath } = await import('next/cache');
+    try {
+      revalidatePath('/', 'layout');
+    } catch (e) {}
 
     return NextResponse.json({
       success: true,

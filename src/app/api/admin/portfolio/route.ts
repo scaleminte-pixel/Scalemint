@@ -92,6 +92,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/portfolio');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, project });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {

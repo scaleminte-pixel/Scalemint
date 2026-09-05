@@ -17,7 +17,15 @@ interface BrandingShowcaseProps {
   projects?: Project[];
 }
 
-// 16 curated high-res 1:1 square logo presentation assets
+interface LogoItem {
+  id: string;
+  title: string;
+  clientName: string;
+  shortDesc?: string;
+  imageUrl: string;
+}
+
+// Curated 1:1 square fallback assets
 const defaultLogoImages: string[] = [
   'https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=800&auto=format&fit=crop', // Minimalist clean brand seal
   'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?q=80&w=800&auto=format&fit=crop', // Vector geometric branding
@@ -27,7 +35,6 @@ const defaultLogoImages: string[] = [
   'https://images.unsplash.com/photo-1542744094-3a31f272c490?q=80&w=800&auto=format&fit=crop', // Enterprise identity
   'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?q=80&w=800&auto=format&fit=crop', // Modern luxury typography mark
   'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop', // Abstract circular logo
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop', // Geometric fluid token
   'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop', // Minimalist mark on dark background
   'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop', // High contrast branding mark
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop', // Clean aesthetic badge
@@ -35,30 +42,51 @@ const defaultLogoImages: string[] = [
   'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=800&auto=format&fit=crop', // Monochrome mark
   'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?q=80&w=800&auto=format&fit=crop', // Sleek luxury mark
   'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800&auto=format&fit=crop', // Heritage luxury seal
+  'https://images.unsplash.com/photo-1580481077197-9e2954ca9345?q=80&w=800&auto=format&fit=crop',
 ];
 
 export default function BrandingShowcase({ projects = [] }: BrandingShowcaseProps) {
-  // Extract backend images if available, otherwise use curated 1:1 image pool
-  const backendImages = projects
-    .map((p) => p.coverMedia?.publicUrl)
-    .filter((url): url is string => Boolean(url));
+  // Map live projects from backend FIRST so any backend image changes immediately display
+  const liveItems: LogoItem[] = projects.map((p, idx) => ({
+    id: p.id || `proj-${idx}`,
+    title: p.title,
+    clientName: p.clientName || 'Scalemint Partner',
+    shortDesc: p.shortDesc,
+    imageUrl: p.coverMedia?.publicUrl || defaultLogoImages[idx % defaultLogoImages.length],
+  }));
 
-  const allImages = backendImages.length >= 8 ? backendImages : defaultLogoImages;
+  // Build combined items pool: live items first, then supplement with curated defaults to reach 16 items for dual track
+  const combinedItems: LogoItem[] = [...liveItems];
+  if (combinedItems.length < 16) {
+    const existingUrls = new Set(combinedItems.map((i) => i.imageUrl));
+    const supplement = defaultLogoImages.filter((u) => !existingUrls.has(u));
+    supplement.forEach((url, i) => {
+      if (combinedItems.length < 16) {
+        combinedItems.push({
+          id: `def-${i}`,
+          title: `Visual Identity Mark 0${i + 1}`,
+          clientName: 'Scalemint Archive',
+          shortDesc: 'Vector identity system & design tokens',
+          imageUrl: url,
+        });
+      }
+    });
+  }
 
   // Split into Row 1 (top) and Row 2 (bottom)
-  const half = Math.ceil(allImages.length / 2);
-  const row1Images = allImages.slice(0, half);
-  const row2Images = allImages.slice(half);
+  const half = Math.ceil(combinedItems.length / 2);
+  const row1Items = combinedItems.slice(0, half);
+  const row2Items = combinedItems.slice(half);
 
   // Duplicated for continuous smooth marquee
-  const duplicatedRow1 = [...row1Images, ...row1Images, ...row1Images];
-  const duplicatedRow2 = [...row2Images, ...row2Images, ...row2Images];
+  const duplicatedRow1 = [...row1Items, ...row1Items, ...row1Items];
+  const duplicatedRow2 = [...row2Items, ...row2Items, ...row2Items];
 
   // Lightbox Modal State
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const openLightbox = (imgUrl: string) => {
-    const idx = allImages.indexOf(imgUrl);
+  const openLightbox = (item: LogoItem) => {
+    const idx = combinedItems.findIndex((i) => i.id === item.id || i.imageUrl === item.imageUrl);
     setLightboxIndex(idx >= 0 ? idx : 0);
   };
 
@@ -67,14 +95,14 @@ export default function BrandingShowcase({ projects = [] }: BrandingShowcaseProp
   const showPrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex - 1 + allImages.length) % allImages.length);
+      setLightboxIndex((lightboxIndex - 1 + combinedItems.length) % combinedItems.length);
     }
   };
 
   const showNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex + 1) % allImages.length);
+      setLightboxIndex((lightboxIndex + 1) % combinedItems.length);
     }
   };
 
@@ -91,6 +119,8 @@ export default function BrandingShowcase({ projects = [] }: BrandingShowcaseProp
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxIndex]);
 
+  const activeItem = lightboxIndex !== null ? combinedItems[lightboxIndex] : null;
+
   return (
     <section
       id="branding-section"
@@ -98,24 +128,25 @@ export default function BrandingShowcase({ projects = [] }: BrandingShowcaseProp
     >
       {/* Ambient Warm Glow */}
       <div className="absolute top-1/3 left-1/4 w-[700px] h-[350px] bg-amber-500/[0.06] blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[600px] h-[300px] bg-purple-600/[0.07] blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[300px] bg-purple-600/[0.08] blur-[140px] pointer-events-none" />
 
-      {/* Section Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mb-8 sm:mb-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2.5 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/25 shadow-sm">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20 shadow-sm backdrop-blur-md">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>THEME 01 · BRAND IDENTITY & LOGO ATELIER</span>
+              <span>DISCIPLINE 01 • VECTOR LOGO & IDENTITY SUITE</span>
             </div>
+
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              Identities Engineered for{' '}
-              <span className="bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 bg-clip-text text-transparent">
-                Radical Distinction
+              Distinctive Visual Systems Built For{' '}
+              <span className="bg-gradient-to-r from-amber-300 via-orange-300 to-amber-400 bg-clip-text text-transparent">
+                Pricing Authority
               </span>
             </h2>
+
             <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
-              No generic templates. Unmistakable brand marks, vector geometry systems, and comprehensive design tokens that command premium authority.
+              Every identity mark is engineered with mathematical geometry, custom typography hierarchy, and distinct visual recall — rejecting generic templates so your brand commands instant market premium.
             </p>
           </div>
 
@@ -146,23 +177,30 @@ export default function BrandingShowcase({ projects = [] }: BrandingShowcaseProp
             className="animate-marquee-infinite flex items-center gap-4 sm:gap-5 hover:[animation-play-state:paused] group-hover/container:[animation-play-state:paused]"
             style={{ willChange: 'transform' }}
           >
-            {duplicatedRow1.map((imgUrl, idx) => (
+            {duplicatedRow1.map((item, idx) => (
               <div
-                key={`r1-img-${idx}`}
-                onClick={() => openLightbox(imgUrl)}
+                key={`r1-item-${idx}`}
+                onClick={() => openLightbox(item)}
                 className="group relative shrink-0 w-[180px] sm:w-[230px] lg:w-[260px] aspect-square rounded-2xl overflow-hidden bg-[#0C0A17] border border-white/10 hover:border-amber-400/60 shadow-xl hover:shadow-[0_10px_30px_-10px_rgba(245,158,11,0.35)] transition-all duration-300 hover:scale-[1.03] cursor-pointer select-none"
               >
                 <img
-                  src={imgUrl}
-                  alt="Client Brand Logo"
+                  src={item.imageUrl}
+                  alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
 
-                {/* Subtle Hover Zoom Overlay Icon */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                  <div className="p-3 rounded-full bg-black/70 border border-white/20 text-amber-300 backdrop-blur-md shadow-lg">
-                    <ZoomIn className="w-5 h-5" />
+                {/* Hover Details Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-4">
+                  <span className="text-[10px] font-mono font-bold text-amber-300 uppercase tracking-wider mb-0.5 truncate">
+                    {item.clientName}
+                  </span>
+                  <h4 className="font-heading text-xs sm:text-sm font-bold text-white leading-snug truncate">
+                    {item.title}
+                  </h4>
+                  <div className="mt-2 inline-flex items-center gap-1 text-[10px] text-amber-200 font-mono">
+                    <ZoomIn className="w-3 h-3" />
+                    <span>Click to Enlarge</span>
                   </div>
                 </div>
               </div>
@@ -178,22 +216,30 @@ export default function BrandingShowcase({ projects = [] }: BrandingShowcaseProp
             className="animate-marquee-reverse flex items-center gap-4 sm:gap-5 hover:[animation-play-state:paused] group-hover/container:[animation-play-state:paused]"
             style={{ willChange: 'transform' }}
           >
-            {duplicatedRow2.map((imgUrl, idx) => (
+            {duplicatedRow2.map((item, idx) => (
               <div
-                key={`r2-img-${idx}`}
-                onClick={() => openLightbox(imgUrl)}
+                key={`r2-item-${idx}`}
+                onClick={() => openLightbox(item)}
                 className="group relative shrink-0 w-[180px] sm:w-[230px] lg:w-[260px] aspect-square rounded-2xl overflow-hidden bg-[#0C0A17] border border-white/10 hover:border-amber-400/60 shadow-xl hover:shadow-[0_10px_30px_-10px_rgba(245,158,11,0.35)] transition-all duration-300 hover:scale-[1.03] cursor-pointer select-none"
               >
                 <img
-                  src={imgUrl}
-                  alt="Client Brand Logo"
+                  src={item.imageUrl}
+                  alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
 
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                  <div className="p-3 rounded-full bg-black/70 border border-white/20 text-amber-300 backdrop-blur-md shadow-lg">
-                    <ZoomIn className="w-5 h-5" />
+                {/* Hover Details Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-4">
+                  <span className="text-[10px] font-mono font-bold text-amber-300 uppercase tracking-wider mb-0.5 truncate">
+                    {item.clientName}
+                  </span>
+                  <h4 className="font-heading text-xs sm:text-sm font-bold text-white leading-snug truncate">
+                    {item.title}
+                  </h4>
+                  <div className="mt-2 inline-flex items-center gap-1 text-[10px] text-amber-200 font-mono">
+                    <ZoomIn className="w-3 h-3" />
+                    <span>Click to Enlarge</span>
                   </div>
                 </div>
               </div>
@@ -202,79 +248,96 @@ export default function BrandingShowcase({ projects = [] }: BrandingShowcaseProp
         </div>
       </div>
 
-      {/* Lightbox Modal (Click to Enlarge with Prev/Next Navigation) */}
-      {lightboxIndex !== null && (
+      {/* Lightbox Modal (Click to Enlarge with Details & Prev/Next Navigation) */}
+      {lightboxIndex !== null && activeItem && (
         <div
           onClick={closeLightbox}
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fadeIn"
         >
-          {/* Top Bar: Counter & Close Button */}
+          {/* Top Bar: Counter, Details & Close Button */}
           <div
             onClick={(e) => e.stopPropagation()}
             className="absolute top-6 left-6 right-6 flex items-center justify-between z-20 text-white"
           >
-            <span className="px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-white/10 backdrop-blur-md border border-white/15">
-              {lightboxIndex + 1} / {allImages.length}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-white/10 backdrop-blur-md border border-white/15">
+                {lightboxIndex + 1} / {combinedItems.length}
+              </span>
+              <div className="hidden sm:block">
+                <span className="font-heading font-bold text-sm text-white block">{activeItem.title}</span>
+                <span className="text-[11px] font-mono text-amber-400 block">{activeItem.clientName}</span>
+              </div>
+            </div>
 
             <button
               onClick={closeLightbox}
-              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white hover:scale-110 transition-all cursor-pointer"
-              aria-label="Close Lightbox"
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all hover:scale-105"
+              aria-label="Close Preview"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Left Arrow Button */}
+          {/* Previous Button */}
           <button
             onClick={showPrev}
-            className="absolute left-4 sm:left-8 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white hover:text-amber-300 hover:scale-110 transition-all z-20 cursor-pointer shadow-2xl"
-            aria-label="Previous Image"
+            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white transition-all hover:scale-110 active:scale-95"
+            aria-label="Previous Mark"
           >
-            <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
 
-          {/* Right Arrow Button */}
+          {/* Next Button */}
           <button
             onClick={showNext}
-            className="absolute right-4 sm:right-8 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white hover:text-amber-300 hover:scale-110 transition-all z-20 cursor-pointer shadow-2xl"
-            aria-label="Next Image"
+            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white transition-all hover:scale-110 active:scale-95"
+            aria-label="Next Mark"
           >
-            <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+            <ChevronRight className="w-6 h-6" />
           </button>
 
-          {/* Enlarged 1:1 Image View */}
+          {/* Centered High-Res Image Container */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-2xl w-full aspect-square rounded-3xl overflow-hidden border border-white/20 shadow-[0_0_80px_rgba(0,0,0,0.9)] bg-black flex items-center justify-center"
+            className="relative max-w-2xl max-h-[80vh] aspect-square rounded-3xl overflow-hidden border border-amber-500/30 bg-[#0C0A17] shadow-2xl shadow-amber-500/20"
           >
             <img
-              src={allImages[lightboxIndex]}
-              alt={`Brand Logo ${lightboxIndex + 1}`}
-              className="w-full h-full object-contain select-none"
+              src={activeItem.imageUrl}
+              alt={activeItem.title}
+              className="w-full h-full object-cover"
             />
+            {/* Bottom info pill */}
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-6 text-center">
+              <span className="text-xs font-mono font-bold text-amber-300 uppercase tracking-widest block mb-1">
+                {activeItem.clientName}
+              </span>
+              <h3 className="font-heading text-lg sm:text-xl font-bold text-white">
+                {activeItem.title}
+              </h3>
+              {activeItem.shortDesc && (
+                <p className="text-xs text-gray-300 mt-1 max-w-md mx-auto line-clamp-2">
+                  {activeItem.shortDesc}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Identity Deliverables CTA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mt-6">
-        <div className="rounded-3xl border border-amber-500/20 bg-gradient-to-r from-amber-500/[0.05] via-purple-500/[0.03] to-amber-500/[0.05] p-5 sm:p-6 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <h4 className="font-heading font-bold text-white text-sm sm:text-base">
-              Full Vector Deliverables on Every Sprint
-            </h4>
-            <p className="text-xs text-gray-400 mt-0.5">
-              100% vector master files (SVG, AI, Figma Tokens) and full commercial rights handover.
-            </p>
+      {/* Discipline Spec Footnote */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-gray-400">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            <span>Format: 1:1 Scalable Vectors · SVG · AI · PDF · Brand Guidelines Included</span>
           </div>
+
           <Link
             href="/services/branding-design"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-bold text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition-all shrink-0 active:scale-95"
+            className="text-amber-300 hover:text-amber-200 font-bold inline-flex items-center gap-1 transition-colors"
           >
-            <span>Explore Branding Sprint</span>
-            <ArrowUpRight className="w-4 h-4" />
+            <span>Explore Full Branding Service</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>

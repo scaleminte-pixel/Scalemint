@@ -49,12 +49,12 @@ export default async function HomePage() {
         orderBy: { displayOrder: 'asc' },
       }),
       prisma.clientBrand.findMany({
-        where: { status: 'PUBLISHED' },
+        where: { status: { in: ['PUBLISHED', 'ACTIVE'] } },
         orderBy: { displayOrder: 'asc' },
         include: { logoMedia: true },
       }),
       prisma.testimonial.findMany({
-        where: { status: 'PUBLISHED' },
+        where: { status: { in: ['PUBLISHED', 'ACTIVE'] } },
         orderBy: { displayOrder: 'asc' },
         include: { photoMedia: true },
       }),
@@ -97,6 +97,7 @@ export default async function HomePage() {
         siteName={settings?.siteName || 'Scalemint'}
         tagline={settings?.tagline || '360° Creative & Digital Growth Partner'}
         whatsappNumber={settings?.whatsappNumber}
+        logoUrl={settings?.logoUrl}
       />
 
       <main className="flex-grow">
@@ -159,6 +160,7 @@ export default async function HomePage() {
         whatsappNumber={settings?.whatsappNumber}
         address={settings?.address}
         footerText={settings?.footerText}
+        logoUrl={settings?.logoUrl}
       />
     </div>
   );

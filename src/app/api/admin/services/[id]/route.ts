@@ -33,6 +33,12 @@ export async function PUT(
       },
     });
 
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/services');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -54,6 +60,12 @@ export async function DELETE(
     await prisma.service.delete({
       where: { id },
     });
+
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/services');
+    } catch (e) {}
 
     return NextResponse.json({ success: true, message: 'Service deleted' });
   } catch (error: any) {

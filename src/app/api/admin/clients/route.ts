@@ -41,6 +41,11 @@ export async function POST(request: Request) {
       include: { logoMedia: true },
     });
 
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, data: client });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -73,6 +78,11 @@ export async function PUT(request: Request) {
       include: { logoMedia: true },
     });
 
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, data: client });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -94,6 +104,12 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.clientBrand.delete({ where: { id } });
+
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+    } catch (e) {}
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {

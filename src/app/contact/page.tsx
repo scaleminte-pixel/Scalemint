@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export const metadata = {
   title: 'Contact Us — Scalemint 360° Creative & Growth Collective',
@@ -63,6 +65,7 @@ export default async function ContactPage() {
         siteName={settings?.siteName || 'Scalemint'}
         tagline={settings?.tagline || '360° Creative & Digital Growth Partner'}
         whatsappNumber={settings?.whatsappNumber}
+        logoUrl={settings?.logoUrl}
       />
 
       <main className="flex-grow pt-28 sm:pt-32">
@@ -217,6 +220,7 @@ export default async function ContactPage() {
         whatsappNumber={settings?.whatsappNumber}
         address={settings?.address}
         footerText={settings?.footerText}
+        logoUrl={settings?.logoUrl}
       />
     </div>
   );

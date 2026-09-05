@@ -219,11 +219,19 @@ export default function TestimonialsSection({
 
                     {/* Client Author Details */}
                     <div className="pt-6 mt-6 border-t border-white/[0.07] flex items-center gap-3.5">
-                      <div
-                        className={`w-11 h-11 rounded-full bg-gradient-to-tr ${colorClass} flex items-center justify-center font-heading font-black text-xs text-white shadow-md shrink-0`}
-                      >
-                        {initials}
-                      </div>
+                      {item.photoMedia?.publicUrl ? (
+                        <img
+                          src={item.photoMedia.publicUrl}
+                          alt={item.photoMedia.altText || item.clientName}
+                          className="w-11 h-11 rounded-full object-cover border border-purple-500/40 shadow-md shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className={`w-11 h-11 rounded-full bg-gradient-to-tr ${colorClass} flex items-center justify-center font-heading font-black text-xs text-white shadow-md shrink-0`}
+                        >
+                          {initials}
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <h4 className="font-heading font-bold text-sm text-white truncate">
                           {item.clientName}

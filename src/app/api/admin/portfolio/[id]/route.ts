@@ -69,6 +69,12 @@ export async function PATCH(
       },
     });
 
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/portfolio');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, project: updated });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -91,6 +97,12 @@ export async function DELETE(
       where: { id },
     });
 
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/portfolio');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, message: 'Project deleted successfully' });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -100,3 +112,6 @@ export async function DELETE(
     return NextResponse.json({ success: false, error: error.message || 'Failed to delete project' }, { status: 500 });
   }
 }
+
+export const PUT = PATCH;
+

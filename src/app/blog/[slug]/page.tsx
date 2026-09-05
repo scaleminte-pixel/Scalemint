@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 interface BlogDetailPageProps {
   params: { slug: string };
@@ -53,8 +55,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         status: 'PUBLISHED',
         slug: { not: params.slug },
       },
-      take: 3,
-      orderBy: { publishedAt: 'desc' },
+      orderBy: [{ displayOrder: 'asc' }, { publishedAt: 'desc' }],
+      take: 2,
+      include: { coverMedia: true },
     }),
   ]);
 
@@ -79,6 +82,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         siteName={settings?.siteName}
         tagline={settings?.tagline}
         whatsappNumber={settings?.whatsappNumber}
+        logoUrl={settings?.logoUrl}
       />
 
       <main className="flex-grow pt-32 pb-24 relative overflow-hidden">
@@ -308,6 +312,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         whatsappNumber={settings?.whatsappNumber}
         address={settings?.address}
         footerText={settings?.footerText}
+        logoUrl={settings?.logoUrl}
       />
     </div>
   );

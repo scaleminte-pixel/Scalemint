@@ -101,10 +101,25 @@ const campaignTracks: CampaignTrack[] = [
 ];
 
 export default function GoogleAdsShowcase({ projects }: GoogleAdsShowcaseProps) {
-  const [activeTab, setActiveTab] = useState<string>(campaignTracks[0].id);
+  const tracks: CampaignTrack[] = (projects && projects.length > 0)
+    ? projects.map((p, idx) => {
+        const fallback = campaignTracks[idx % campaignTracks.length];
+        return {
+          ...fallback,
+          id: p.id || p.slug || fallback.id,
+          tabLabel: p.title || fallback.tabLabel,
+          clientName: p.clientName || fallback.clientName,
+          title: p.title || fallback.title,
+          desc: p.shortDesc || fallback.desc,
+          roas: p.results || fallback.roas,
+        };
+      })
+    : campaignTracks;
+
+  const [activeTab, setActiveTab] = useState<string>(tracks[0]?.id || campaignTracks[0].id);
 
   const activeCampaign =
-    campaignTracks.find((c) => c.id === activeTab) || campaignTracks[0];
+    tracks.find((c) => c.id === activeTab) || tracks[0] || campaignTracks[0];
 
   return (
     <section id="ads-section" className="py-14 sm:py-16 relative overflow-hidden border-t border-white/[0.08] bg-gradient-to-b from-[#040C08] via-[#081710] to-[#040C08]">
@@ -139,7 +154,7 @@ export default function GoogleAdsShowcase({ projects }: GoogleAdsShowcaseProps) 
 
         {/* Clean, Spacious Category Tracks (Zero Clutter) */}
         <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-8 no-scrollbar">
-          {campaignTracks.map((track) => {
+          {tracks.map((track) => {
             const isSelected = track.id === activeTab;
             return (
               <button

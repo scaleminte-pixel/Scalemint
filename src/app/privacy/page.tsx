@@ -7,6 +7,8 @@ import { ShieldCheck, Lock, Eye, Database, FileText, CheckCircle2 } from 'lucide
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export const metadata = {
   title: 'Privacy Policy — Scalemint Studio',

@@ -78,6 +78,12 @@ export async function POST(request: Request) {
       include: { coverMedia: true },
     });
 
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/blog');
+    } catch (e) {}
+
     return NextResponse.json({ success: true, data: blog });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -124,7 +130,7 @@ export async function PUT(request: Request) {
         ...(category && { category }),
         ...(author && { author }),
         ...(authorRole !== undefined && { authorRole }),
-        ...(readTime && { readTime }),
+        ...(readTime !== undefined && { readTime }),
         ...(coverUrl !== undefined && { coverUrl }),
         ...(coverMediaId !== undefined && { coverMediaId }),
         ...(displayOrder !== undefined && { displayOrder: parseInt(displayOrder) }),
@@ -134,6 +140,12 @@ export async function PUT(request: Request) {
       },
       include: { coverMedia: true },
     });
+
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/blog');
+    } catch (e) {}
 
     return NextResponse.json({ success: true, data: blog });
   } catch (error: any) {
@@ -156,6 +168,13 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.blogPost.delete({ where: { id } });
+
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout');
+      revalidatePath('/blog');
+    } catch (e) {}
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {

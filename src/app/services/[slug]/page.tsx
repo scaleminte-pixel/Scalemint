@@ -41,6 +41,8 @@ import {
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 interface ServicePageProps {
   params: { slug: string };
@@ -208,6 +210,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         siteName={settings?.siteName}
         tagline={settings?.tagline}
         whatsappNumber={settings?.whatsappNumber}
+        logoUrl={settings?.logoUrl}
       />
 
       <main className="flex-grow pt-24 sm:pt-28 pb-20 relative overflow-hidden">
@@ -682,6 +685,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         whatsappNumber={settings?.whatsappNumber}
         address={settings?.address}
         footerText={settings?.footerText}
+        logoUrl={settings?.logoUrl}
       />
     </div>
   );

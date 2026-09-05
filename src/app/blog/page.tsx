@@ -15,6 +15,7 @@ import {
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export const metadata = {
   title: 'Insights & Thought Leadership — Scalemint Studio',
@@ -60,6 +61,7 @@ export default async function BlogPage({
         siteName={settings?.siteName}
         tagline={settings?.tagline}
         whatsappNumber={settings?.whatsappNumber}
+        logoUrl={settings?.logoUrl}
       />
 
       <main className="flex-grow pt-28 pb-16 relative overflow-hidden">
@@ -265,6 +267,7 @@ export default async function BlogPage({
         whatsappNumber={settings?.whatsappNumber}
         address={settings?.address}
         footerText={settings?.footerText}
+        logoUrl={settings?.logoUrl}
       />
     </div>
   );
