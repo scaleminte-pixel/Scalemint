@@ -43,6 +43,7 @@ import {
   DollarSign,
   Scale,
   Tag,
+  X,
 } from 'lucide-react';
 import MediaSelectModal from '@/components/MediaSelectModal';
 import DynamicBlockManager from '@/components/admin/DynamicBlockManager';
@@ -51,6 +52,7 @@ import CalculatorPricingManager from '@/components/admin/CalculatorPricingManage
 import LegalPagesManager from '@/components/admin/LegalPagesManager';
 import LogoFaviconSettings from '@/components/admin/LogoFaviconSettings';
 import BlogPostManager from '@/components/admin/BlogPostManager';
+import ServiceManager from '@/components/admin/ServiceManager';
 
 type TabKey =
   | 'overview'
@@ -106,6 +108,11 @@ export default function AdminDashboardPage() {
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<any>(null);
   const [editingClient, setEditingClient] = useState<any>(null);
+  const [testimonialPhotoAsset, setTestimonialPhotoAsset] = useState<any>(null);
+  const [clientLogoAsset, setClientLogoAsset] = useState<any>(null);
+  const [testimonialMediaOpen, setTestimonialMediaOpen] = useState(false);
+  const [clientLogoMediaOpen, setClientLogoMediaOpen] = useState(false);
+  const [isSavingTestimonial, setIsSavingTestimonial] = useState(false);
 
   // UI status alerts & loading indicators
   const [saveSuccess, setSaveSuccess] = useState('');
@@ -1486,78 +1493,7 @@ export default function AdminDashboardPage() {
 
         {/* TAB 6: SERVICES & PACKAGES */}
         {activeTab === 'services' && (
-          <div className="space-y-6 max-w-5xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-heading text-2xl font-bold text-white">
-                  The 6 Core Services & Transparent Packages
-                </h1>
-                <p className="text-xs text-gray-400">
-                  Manage descriptions, starting prices, deliverables, and service scopes.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {services.map((service) => (
-                <div key={service.id} className="glass-card rounded-2xl p-6 border border-agency-border space-y-5">
-                  <div className="flex items-center justify-between border-b border-agency-border/60 pb-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-heading text-lg font-bold text-white">{service.name}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/20 text-purple-300">
-                        /{service.slug}
-                      </span>
-                      <span className="text-xs text-amber-400 font-bold">{service.startingPrice || 'Turnkey Sprints'}</span>
-                    </div>
-
-                    <Link
-                      href={`/services/${service.slug}`}
-                      target="_blank"
-                      className="text-xs text-purple-400 hover:underline flex items-center gap-1"
-                    >
-                      <span>Preview Live Page</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </Link>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <label className="block text-gray-400 font-semibold mb-1">Short Description</label>
-                      <textarea
-                        rows={2}
-                        defaultValue={service.shortDesc}
-                        onBlur={async (e) => {
-                          await fetch(`/api/admin/services/${service.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ shortDesc: e.target.value }),
-                          });
-                          showNotification('Service description updated');
-                        }}
-                        className="w-full px-3 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs leading-relaxed"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-400 font-semibold mb-1">Starting Price Tag</label>
-                      <input
-                        type="text"
-                        defaultValue={service.startingPrice || ''}
-                        onBlur={async (e) => {
-                          await fetch(`/api/admin/services/${service.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ startingPrice: e.target.value }),
-                          });
-                          showNotification('Price tag updated');
-                        }}
-                        className="w-full px-3 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ServiceManager showNotification={showNotification} />
         )}
 
         {/* TAB 7: PAGE SECTIONS CMS (Isolated Atomic Updates) */}
@@ -1809,18 +1745,14 @@ export default function AdminDashboardPage() {
           <div className="space-y-6 max-w-5xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="font-heading text-2xl font-bold text-white">
-                  Client Testimonials Management
-                </h1>
-                <p className="text-xs text-gray-400">
-                  Control the endorsements featured across homepage and service pages.
-                </p>
+                <h1 className="font-heading text-2xl font-bold text-white">Client Testimonials Management</h1>
+                <p className="text-xs text-gray-400">Control the endorsements featured across homepage and service pages. Add photos for maximum credibility.</p>
               </div>
-
               <button
                 type="button"
                 onClick={() => {
                   setEditingTestimonial(null);
+                  setTestimonialPhotoAsset(null);
                   setTestimonialModalOpen(true);
                 }}
                 className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
@@ -1840,93 +1772,192 @@ export default function AdminDashboardPage() {
                           <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                         ))}
                       </div>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!confirm(`Delete testimonial from ${t.clientName}?`)) return;
-                          await fetch(`/api/admin/testimonials?id=${t.id}`, { method: 'DELETE' });
-                          setTestimonials(testimonials.filter((item) => item.id !== t.id));
-                          showNotification('Testimonial deleted');
-                        }}
-                        className="text-red-400 hover:text-red-300 p-1"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingTestimonial(t);
+                            setTestimonialPhotoAsset(t.photoMedia || null);
+                            setTestimonialModalOpen(true);
+                          }}
+                          className="text-purple-400 hover:text-purple-300 p-1"
+                          title="Edit"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm(`Delete testimonial from ${t.clientName}?`)) return;
+                            await fetch(`/api/admin/testimonials?id=${t.id}`, { method: 'DELETE' });
+                            setTestimonials(testimonials.filter((item) => item.id !== t.id));
+                            showNotification('Testimonial deleted');
+                          }}
+                          className="text-red-400 hover:text-red-300 p-1"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
-                    <p className="text-xs text-gray-300 italic leading-relaxed">
-                      "{t.quote}"
+                    <p className="text-xs text-gray-300 italic leading-relaxed line-clamp-3">
+                      &ldquo;{t.quote}&rdquo;
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-agency-border/60">
-                    <h4 className="font-heading font-bold text-xs text-white">{t.clientName}</h4>
-                    <p className="text-[11px] text-purple-300 font-medium">{t.clientRole} · {t.companyName}</p>
+                  <div className="pt-4 border-t border-agency-border/60 flex items-center gap-3">
+                    {/* Photo avatar */}
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-agency-dark border border-agency-border shrink-0">
+                      {t.photoMedia?.publicUrl ? (
+                        <img src={t.photoMedia.publicUrl} alt={t.clientName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-purple-600/20 text-purple-300 font-bold text-sm">
+                          {t.clientName?.substring(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-bold text-xs text-white">{t.clientName}</h4>
+                      <p className="text-[11px] text-purple-300 font-medium">{t.clientRole} · {t.companyName}</p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Testimonial Modal */}
+            {/* Testimonial Add/Edit Modal */}
             {testimonialModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div className="bg-[#0D0D18] border border-agency-border rounded-2xl max-w-lg w-full p-6 space-y-5">
-                  <div className="flex items-center justify-between border-b border-agency-border pb-3">
-                    <h3 className="font-heading font-bold text-base text-white">Add Client Testimonial</h3>
-                    <button type="button" onClick={() => setTestimonialModalOpen(false)} className="text-gray-400 hover:text-white text-xs">✕ Close</button>
+                <div className="bg-[#0D0D18] border border-agency-border rounded-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto">
+                  <div className="sticky top-0 bg-[#0D0D18] border-b border-agency-border px-6 py-4 flex items-center justify-between">
+                    <h3 className="font-heading font-bold text-base text-white">
+                      {editingTestimonial ? 'Edit Testimonial' : 'Add Client Testimonial'}
+                    </h3>
+                    <button type="button" onClick={() => { setTestimonialModalOpen(false); setEditingTestimonial(null); setTestimonialPhotoAsset(null); }} className="text-gray-400 hover:text-white p-1.5 rounded-lg"><X className="w-4 h-4" /></button>
                   </div>
 
                   <form
                     onSubmit={async (e: any) => {
                       e.preventDefault();
+                      setIsSavingTestimonial(true);
                       const fd = new FormData(e.target);
-                      const res = await fetch('/api/admin/testimonials', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          clientName: fd.get('clientName'),
-                          clientRole: fd.get('clientRole'),
-                          companyName: fd.get('companyName'),
-                          rating: parseInt(fd.get('rating') as string) || 5,
-                          quote: fd.get('quote'),
-                        }),
-                      });
-                      const d = await res.json();
-                      if (d.success) {
-                        setTestimonialModalOpen(false);
-                        checkAuthAndLoad();
-                        showNotification('Testimonial added successfully!');
-                      }
+                      const payload = {
+                        clientName: fd.get('clientName'),
+                        clientRole: fd.get('clientRole'),
+                        companyName: fd.get('companyName'),
+                        rating: parseInt(fd.get('rating') as string) || 5,
+                        quote: fd.get('quote'),
+                        photoMediaId: testimonialPhotoAsset?.id || null,
+                        status: 'PUBLISHED',
+                      };
+                      try {
+                        let res;
+                        if (editingTestimonial) {
+                          res = await fetch('/api/admin/testimonials', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: editingTestimonial.id, ...payload }),
+                          });
+                        } else {
+                          res = await fetch('/api/admin/testimonials', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload),
+                          });
+                        }
+                        const d = await res.json();
+                        if (d.success) {
+                          setTestimonialModalOpen(false);
+                          setEditingTestimonial(null);
+                          setTestimonialPhotoAsset(null);
+                          checkAuthAndLoad();
+                          showNotification(editingTestimonial ? 'Testimonial updated!' : 'Testimonial added!');
+                        } else throw new Error(d.error);
+                      } catch (err: any) {
+                        showNotification(err.message, true);
+                      } finally { setIsSavingTestimonial(false); }
                     }}
-                    className="space-y-4 text-xs"
+                    className="p-6 space-y-4 text-xs"
                   >
+                    {/* Photo Picker */}
+                    <div>
+                      <label className="block text-gray-300 font-semibold mb-2">Client Photo</label>
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-agency-dark border border-agency-border">
+                        <div className="w-14 h-14 rounded-full overflow-hidden bg-agency-card border border-agency-border shrink-0 flex items-center justify-center">
+                          {testimonialPhotoAsset?.publicUrl
+                            ? <img src={testimonialPhotoAsset.publicUrl} alt="Photo" className="w-full h-full object-cover" />
+                            : <span className="text-gray-500 text-[10px]">No photo</span>}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-medium truncate">{testimonialPhotoAsset?.originalFilename || 'No photo selected'}</p>
+                          <p className="text-[10px] text-gray-500">Optional — adds credibility to the review card</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button type="button" onClick={() => setTestimonialMediaOpen(true)} className="px-3 py-2 rounded-xl bg-agency-card text-purple-300 border border-agency-border text-xs font-semibold flex items-center gap-1.5">
+                            <ImageIcon className="w-3.5 h-3.5" /><span>Library</span>
+                          </button>
+                          <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5">
+                            <Upload className="w-3.5 h-3.5" /><span>Upload</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={async (evt) => {
+                              const file = evt.target.files?.[0]; if (!file) return;
+                              const fd2 = new FormData(); fd2.append('file', file); fd2.append('category', 'testimonial');
+                              const r = await fetch('/api/admin/media', { method: 'POST', body: fd2 });
+                              const d2 = await r.json();
+                              if (d2.success) { setTestimonialPhotoAsset(d2.data); showNotification('Photo uploaded!'); }
+                              else showNotification(d2.error || 'Upload failed', true);
+                              evt.target.value = '';
+                            }} />
+                          </label>
+                          {testimonialPhotoAsset && <button type="button" onClick={() => setTestimonialPhotoAsset(null)} className="p-2 rounded-xl text-red-400 border border-agency-border hover:bg-agency-card"><Trash2 className="w-3.5 h-3.5" /></button>}
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-gray-300 font-semibold mb-1">Client Name *</label>
-                      <input name="clientName" required placeholder="e.g. Marcus Vance" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs" />
+                      <input name="clientName" required defaultValue={editingTestimonial?.clientName || ''} placeholder="e.g. Marcus Vance" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs focus:outline-none focus:border-purple-500" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-gray-300 font-semibold mb-1">Role</label>
-                        <input name="clientRole" placeholder="e.g. Managing Partner" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs" />
+                        <input name="clientRole" defaultValue={editingTestimonial?.clientRole || ''} placeholder="e.g. Managing Partner" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs focus:outline-none focus:border-purple-500" />
                       </div>
                       <div>
                         <label className="block text-gray-300 font-semibold mb-1">Company</label>
-                        <input name="companyName" placeholder="e.g. Apex Ventures" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs" />
+                        <input name="companyName" defaultValue={editingTestimonial?.companyName || ''} placeholder="e.g. Apex Ventures" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs focus:outline-none focus:border-purple-500" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-gray-300 font-semibold mb-1">Quote *</label>
-                      <textarea name="quote" rows={3} required className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs leading-relaxed" />
+                      <textarea name="quote" rows={3} required defaultValue={editingTestimonial?.quote || ''} className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs leading-relaxed focus:outline-none focus:border-purple-500" />
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 font-semibold mb-1">Star Rating</label>
+                      <select name="rating" defaultValue={editingTestimonial?.rating || 5} className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs focus:outline-none focus:border-purple-500">
+                        <option value={5}>5 Stars ★★★★★</option>
+                        <option value={4}>4 Stars ★★★★</option>
+                        <option value={3}>3 Stars ★★★</option>
+                      </select>
                     </div>
                     <div className="pt-2 flex justify-end gap-2 border-t border-agency-border">
-                      <button type="button" onClick={() => setTestimonialModalOpen(false)} className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] text-gray-300 text-xs">Cancel</button>
-                      <button type="submit" className="px-4 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-semibold">Publish Testimonial</button>
+                      <button type="button" onClick={() => { setTestimonialModalOpen(false); setEditingTestimonial(null); setTestimonialPhotoAsset(null); }} className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] text-gray-300 text-xs">Cancel</button>
+                      <button type="submit" disabled={isSavingTestimonial} className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50">
+                        {isSavingTestimonial ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        <span>{editingTestimonial ? 'Save Changes' : 'Publish Testimonial'}</span>
+                      </button>
                     </div>
                   </form>
                 </div>
               </div>
             )}
+
+            {/* Testimonial Photo Media Modal */}
+            <MediaSelectModal
+              isOpen={testimonialMediaOpen}
+              onClose={() => setTestimonialMediaOpen(false)}
+              onSelect={asset => { setTestimonialPhotoAsset(asset); setTestimonialMediaOpen(false); }}
+            />
           </div>
         )}
 
@@ -1936,10 +1967,10 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="font-heading text-2xl font-bold text-white">Client Brands Marquee</h1>
-                <p className="text-xs text-gray-400">Manage the trusted logo partners in the continuous marquee banner.</p>
+                <p className="text-xs text-gray-400">Manage logos in the infinite scrolling partner marquee. Upload SVG or PNG for best results.</p>
               </div>
               <button
-                onClick={() => setClientModalOpen(true)}
+                onClick={() => { setClientLogoAsset(null); setClientModalOpen(true); }}
                 className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
@@ -1947,31 +1978,41 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {clients.map((c) => (
-                <div key={c.id} className="glass-card rounded-2xl p-4 border border-agency-border flex items-center justify-between">
-                  <span className="font-heading font-bold text-xs text-white">{c.name}</span>
-                  <button
-                    onClick={async () => {
-                      if (!confirm(`Remove ${c.name}?`)) return;
-                      await fetch(`/api/admin/clients?id=${c.id}`, { method: 'DELETE' });
-                      setClients(clients.filter((item) => item.id !== c.id));
-                      showNotification('Client brand removed');
-                    }}
-                    className="text-red-400 hover:text-red-300 p-1"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                <div key={c.id} className="glass-card rounded-2xl p-4 border border-agency-border flex flex-col gap-3">
+                  {/* Logo preview */}
+                  <div className="w-full h-16 rounded-xl bg-agency-dark border border-agency-border overflow-hidden flex items-center justify-center">
+                    {c.logoMedia?.publicUrl ? (
+                      <img src={c.logoMedia.publicUrl} alt={c.name} className="max-h-12 max-w-full object-contain" />
+                    ) : (
+                      <span className="text-xs font-bold text-gray-500">{c.name}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-heading font-bold text-xs text-white truncate">{c.name}</span>
+                    <button
+                      onClick={async () => {
+                        if (!confirm(`Remove ${c.name}?`)) return;
+                        await fetch(`/api/admin/clients?id=${c.id}`, { method: 'DELETE' });
+                        setClients(clients.filter((item) => item.id !== c.id));
+                        showNotification('Client brand removed');
+                      }}
+                      className="text-red-400 hover:text-red-300 p-1 shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
             {clientModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div className="bg-[#0D0D18] border border-agency-border rounded-2xl max-w-md w-full p-6 space-y-4">
-                  <div className="flex items-center justify-between border-b border-agency-border pb-3">
+                <div className="bg-[#0D0D18] border border-agency-border rounded-2xl max-w-md w-full">
+                  <div className="border-b border-agency-border px-6 py-4 flex items-center justify-between">
                     <h3 className="font-heading font-bold text-base text-white">Add Partner Brand</h3>
-                    <button onClick={() => setClientModalOpen(false)} className="text-gray-400 text-xs">✕</button>
+                    <button onClick={() => { setClientModalOpen(false); setClientLogoAsset(null); }} className="text-gray-400 hover:text-white p-1.5 rounded-lg"><X className="w-4 h-4" /></button>
                   </div>
                   <form
                     onSubmit={async (e: any) => {
@@ -1980,33 +2021,66 @@ export default function AdminDashboardPage() {
                       const res = await fetch('/api/admin/clients', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: fd.get('name'), websiteUrl: fd.get('websiteUrl') }),
+                        body: JSON.stringify({ name: fd.get('name'), websiteUrl: fd.get('websiteUrl'), logoMediaId: clientLogoAsset?.id || null }),
                       });
                       const d = await res.json();
-                      if (d.success) {
-                        setClientModalOpen(false);
-                        checkAuthAndLoad();
-                        showNotification('Client added');
-                      }
+                      if (d.success) { setClientModalOpen(false); setClientLogoAsset(null); checkAuthAndLoad(); showNotification('Client added'); }
+                      else showNotification(d.error || 'Failed to add', true);
                     }}
-                    className="space-y-4 text-xs"
+                    className="p-6 space-y-4 text-xs"
                   >
+                    {/* Logo Picker */}
+                    <div>
+                      <label className="block text-gray-300 font-semibold mb-2">Brand Logo</label>
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-agency-dark border border-agency-border">
+                        <div className="w-20 h-14 rounded-lg bg-agency-card border border-agency-border overflow-hidden flex items-center justify-center shrink-0">
+                          {clientLogoAsset?.publicUrl
+                            ? <img src={clientLogoAsset.publicUrl} alt="Logo" className="max-h-12 max-w-full object-contain" />
+                            : <ImageIcon className="w-6 h-6 text-gray-600" />}
+                        </div>
+                        <div className="flex-1"><p className="text-white font-medium truncate">{clientLogoAsset?.originalFilename || 'No logo selected'}</p></div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button type="button" onClick={() => setClientLogoMediaOpen(true)} className="px-3 py-2 rounded-xl bg-agency-card text-purple-300 border border-agency-border text-xs font-semibold flex items-center gap-1.5">
+                            <ImageIcon className="w-3.5 h-3.5" /><span>Library</span>
+                          </button>
+                          <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5">
+                            <Upload className="w-3.5 h-3.5" /><span>Upload</span>
+                            <input type="file" accept="image/*,.svg" className="hidden" onChange={async (evt) => {
+                              const file = evt.target.files?.[0]; if (!file) return;
+                              const fd2 = new FormData(); fd2.append('file', file); fd2.append('category', 'client-logo');
+                              const r = await fetch('/api/admin/media', { method: 'POST', body: fd2 });
+                              const d2 = await r.json();
+                              if (d2.success) { setClientLogoAsset(d2.data); showNotification('Logo uploaded!'); }
+                              else showNotification(d2.error || 'Upload failed', true);
+                              evt.target.value = '';
+                            }} />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                     <div>
                       <label className="block text-gray-300 font-semibold mb-1">Brand Name *</label>
-                      <input name="name" required placeholder="e.g. Apex Ventures" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs" />
+                      <input name="name" required placeholder="e.g. Apex Ventures" className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs focus:outline-none focus:border-purple-500" />
                     </div>
                     <div>
                       <label className="block text-gray-300 font-semibold mb-1">Website URL</label>
-                      <input name="websiteUrl" placeholder="https://..." className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs" />
+                      <input name="websiteUrl" placeholder="https://..." className="w-full px-3.5 py-2 rounded-xl bg-agency-dark border border-agency-border text-white text-xs focus:outline-none focus:border-purple-500" />
                     </div>
                     <div className="pt-2 flex justify-end gap-2 border-t border-agency-border">
-                      <button type="button" onClick={() => setClientModalOpen(false)} className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] text-gray-300">Cancel</button>
-                      <button type="submit" className="px-4 py-1.5 rounded-xl bg-purple-600 text-white font-semibold">Add Brand</button>
+                      <button type="button" onClick={() => { setClientModalOpen(false); setClientLogoAsset(null); }} className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] text-gray-300">Cancel</button>
+                      <button type="submit" className="px-4 py-1.5 rounded-xl bg-purple-600 text-white font-semibold text-xs">Add Brand</button>
                     </div>
                   </form>
                 </div>
               </div>
             )}
+
+            {/* Logo Media Modal */}
+            <MediaSelectModal
+              isOpen={clientLogoMediaOpen}
+              onClose={() => setClientLogoMediaOpen(false)}
+              onSelect={asset => { setClientLogoAsset(asset); setClientLogoMediaOpen(false); }}
+            />
           </div>
         )}
 
