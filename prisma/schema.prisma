@@ -1,0 +1,359 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Admin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("ADMIN") // SUPER_ADMIN, ADMIN, EDITOR
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model SiteSettings {
+  id                String   @id @default("global")
+  siteName          String   @default("Scalemint")
+  tagline           String   @default("360° Creative & Growth Partner")
+  logoMediaId       String?
+  logoUrl           String?  // Direct image URL fallback
+  faviconMediaId    String?
+  faviconUrl        String?  // Direct favicon fallback
+  contactEmail      String   @default("hello@scalemint.com")
+  contactPhone      String?  @default("+1 (555) 019-2834")
+  whatsappNumber    String?  @default("+15550192834")
+  address           String?  @default("San Francisco, CA / Global Remote")
+  socialLinks       String?  // JSON string: { twitter, linkedin, instagram, youtube, facebook }
+  footerText        String?  @default("© 2026 Scalemint. All rights reserved. High-velocity creative & growth engine.")
+  defaultSeoTitle   String?  @default("Scalemint — 360° Full-Service Creative & Digital Growth Agency")
+  defaultSeoDesc    String?  @default("Scale your brand with high-converting websites, branding design, video editing, AI UGC, digital marketing, and Google Ads.")
+  googleAnalyticsId String?
+  metaPixelId       String?
+  customHeadCode    String?
+  updatedAt         DateTime @updatedAt
+}
+
+model MediaAsset {
+  id               String   @id @default(cuid())
+  filename         String
+  originalFilename String
+  mimeType         String
+  fileSize         Int
+  width            Int?
+  height           Int?
+  storagePath      String   // Path in /uploads/
+  publicUrl        String
+  altText          String?
+  category         String   @default("general") // hero, service, portfolio, client, etc.
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  servicesAsCover      Service[]               @relation("ServiceCoverMedia")
+  portfolioAsCover     PortfolioProject[]      @relation("PortfolioCoverMedia")
+  portfolioGallery     PortfolioProjectMedia[]
+  testimonialsAsPhoto  Testimonial[]           @relation("TestimonialPhotoMedia")
+  clientBrandsAsLogo   ClientBrand[]           @relation("ClientBrandLogoMedia")
+  blogPostsAsCover     BlogPost[]              @relation("BlogPostCoverMedia")
+  dynamicBlocksAsCover DynamicBlock[]          @relation("DynamicBlockCoverMedia")
+}
+
+model PageSection {
+  id               String   @id @default(cuid())
+  page             String   // "home", "about"
+  sectionKey       String   // "hero", "services_intro", "why_choose_us", "process", "final_cta"
+  title            String?
+  subtitle         String?
+  content          String?  // Rich text or markdown
+  mediaId          String?
+  ctaText          String?
+  ctaLink          String?
+  ctaSecondaryText String?
+  ctaSecondaryLink String?
+  metadata         String?  // JSON for extra params
+  displayOrder     Int      @default(0)
+  isPublished      Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+
+  @@unique([page, sectionKey])
+}
+
+model Service {
+  id             String           @id @default(cuid())
+  slug           String           @unique
+  name           String
+  tagline        String?
+  shortDesc      String
+  fullDesc       String?
+  coverMediaId   String?
+  coverMedia     MediaAsset?      @relation("ServiceCoverMedia", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  iconName       String?          @default("sparkles")
+  whatIsIncluded String?          // JSON Array of strings
+  bestFor        String?
+  benefits       String?          // JSON Array of strings
+  startingPrice  String?          // Estimate/starting
+  displayOrder   Int              @default(0)
+  status         String           @default("PUBLISHED") // DRAFT, PUBLISHED, HIDDEN
+  seoTitle       String?
+  seoDescription String?
+  packages       ServicePackage[]
+  leads          Lead[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model ServicePackage {
+  id            String   @id @default(cuid())
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name          String   // "Starter", "Growth", "Scale"
+  bestFor       String?
+  price         String   // "$990" or "Custom Quote"
+  originalPrice String?  // "$1,490"
+  discount      String?  // "30% OFF"
+  billingType   String?  @default("ONE_TIME") // "ONE_TIME", "MONTHLY", "SPRINT"
+  currency      String   @default("USD")
+  deliverables  String?  // JSON array of strings
+  revisions     String?  // "Unlimited" / "3 Rounds"
+  timeline      String?  // "7-10 Business Days"
+  ctaText       String   @default("Get Started")
+  ctaLink       String?
+  badge         String?  // "Most Popular", "High Velocity"
+  guaranteeText String?  // "100% IP Handover Guarantee"
+  isPopular     Boolean  @default(false)
+  displayOrder  Int      @default(0)
+  status        String   @default("PUBLISHED") // DRAFT, PUBLISHED, HIDDEN
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PortfolioCategory {
+  id           String             @id @default(cuid())
+  name         String             @unique
+  slug         String             @unique
+  displayOrder Int                @default(0)
+  projects     PortfolioProject[]
+}
+
+model PortfolioProject {
+  id           String                  @id @default(cuid())
+  slug         String                  @unique
+  title        String
+  clientName   String?
+  shortDesc    String
+  fullDesc     String?
+  categoryId   String?
+  category     PortfolioCategory?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  servicesUsed String?                 // JSON array of service names
+  coverMediaId String?
+  coverMedia   MediaAsset?             @relation("PortfolioCoverMedia", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  projectUrl   String?
+  youtubeUrl   String?                 // Direct YouTube link (no file uploads)
+  youtubeId    String?                 // Normalized YouTube ID for instant streaming
+  results      String?                 // JSON: metrics if real
+  displayOrder Int                     @default(0)
+  status       String                  @default("PUBLISHED") // DRAFT, PUBLISHED, HIDDEN
+  seoTitle     String?
+  seoDesc      String?
+  gallery      PortfolioProjectMedia[]
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+}
+
+model PortfolioProjectMedia {
+  id           String           @id @default(cuid())
+  projectId    String
+  project      PortfolioProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId      String
+  media        MediaAsset       @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  displayOrder Int              @default(0)
+}
+
+model Testimonial {
+  id           String      @id @default(cuid())
+  clientName   String
+  clientRole   String?
+  companyName  String?
+  quote        String
+  rating       Int         @default(5)
+  photoMediaId String?
+  photoMedia   MediaAsset? @relation("TestimonialPhotoMedia", fields: [photoMediaId], references: [id], onDelete: SetNull)
+  displayOrder Int         @default(0)
+  status       String      @default("PUBLISHED")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model ClientBrand {
+  id           String      @id @default(cuid())
+  name         String
+  logoMediaId  String?
+  logoMedia    MediaAsset? @relation("ClientBrandLogoMedia", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  websiteUrl   String?
+  displayOrder Int         @default(0)
+  status       String      @default("PUBLISHED")
+  createdAt    DateTime    @default(now())
+}
+
+model Faq {
+  id           String   @id @default(cuid())
+  question     String
+  answer       String
+  category     String?  @default("general")
+  displayOrder Int      @default(0)
+  status       String   @default("PUBLISHED")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Lead {
+  id              String     @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  whatsapp        String?
+  company         String?
+  serviceInterest String?
+  serviceId       String?
+  service         Service?   @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  message         String
+  budget          String?
+  status          String     @default("NEW") // NEW, CONTACTED, QUALIFIED, PROPOSAL_SENT, WON, LOST
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmTerm         String?
+  utmContent      String?
+  landingPage     String?
+  referrer        String?
+  notes           LeadNote[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  author    String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Booking {
+  id              String   @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  company         String?
+  serviceInterest String?
+  requestedDate   DateTime
+  durationMinutes Int      @default(30)
+  notes           String?
+  status          String   @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String   // "CREATE", "UPDATE", "DELETE", "LOGIN"
+  entity      String   // "SERVICE", "HOMEPAGE_HERO", "MEDIA", etc.
+  entityId    String?
+  details     String?  // JSON details
+  performedBy String
+  createdAt   DateTime @default(now())
+}
+
+model BlogPost {
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  title        String
+  excerpt      String
+  content      String      // Markdown / HTML / text / JSON sections
+  coverMediaId String?
+  coverMedia   MediaAsset? @relation("BlogPostCoverMedia", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  coverUrl     String?     // Optional direct image URL fallback
+  category     String      @default("Strategy")
+  author       String      @default("Scalemint Studio")
+  authorRole   String?     @default("Principal Strategist")
+  readTime     String?     @default("5 min read")
+  displayOrder Int         @default(0)
+  status       String      @default("PUBLISHED") // DRAFT, PUBLISHED
+  publishedAt  DateTime    @default(now())
+  seoTitle     String?
+  seoDesc      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+// -------------------------------------------------------------
+// NEW EXPANDED MODELS (Phases 3, 5, 8, 9, 10, 11)
+// -------------------------------------------------------------
+
+model YouTubeVideo {
+  id           String   @id @default(cuid())
+  title        String
+  youtubeUrl   String
+  youtubeId    String   // Normalized 11-char YouTube ID
+  description  String?
+  category     String?  @default("general") // "showcase", "reel", "cinema", "ugc"
+  isFeatured   Boolean  @default(false)
+  displayOrder Int      @default(0)
+  status       String   @default("PUBLISHED") // "DRAFT", "PUBLISHED", "HIDDEN"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DynamicBlock {
+  id              String      @id @default(cuid())
+  slug            String?     @unique
+  title           String
+  subtitle        String?
+  bodyText        String?
+  contentSections String?     // JSON array: [{ type: 'text'|'image', content: '...', mediaId: '...', caption: '...', altText: '...' }]
+  coverMediaId    String?
+  coverMedia      MediaAsset? @relation("DynamicBlockCoverMedia", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  videoUrl        String?
+  ctaText         String?
+  ctaLink         String?
+  category        String?     @default("general")
+  displayOrder    Int         @default(0)
+  status          String      @default("PUBLISHED") // "DRAFT", "PUBLISHED", "HIDDEN"
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model CalculatorConfig {
+  id            String   @id @default("global_calculator")
+  basePrice     Float    @default(1490)
+  currency      String   @default("USD")
+  tierPresets   String?  // JSON string of tiers: [{ id, name, badge, basePrice, deliveryDays, features: [] }]
+  addOnOptions  String?  // JSON string of add-ons: [{ id, name, price, desc, daysDiff }]
+  discountRules String?  // JSON string of rules
+  minPrice      Float    @default(490)
+  maxPrice      Float    @default(25000)
+  ctaText       String   @default("Lock In Scope & Book Strategy Call")
+  ctaLink       String   @default("#contact")
+  isVisible     Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+}
+
+model LegalPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique // "terms", "privacy", "payment-policy"
+  title       String
+  summary     String?
+  content     String?  // Rich text or structured markdown
+  sections    String?  // JSON array: [{ id, title, iconName, content }]
+  lastUpdated DateTime @default(now())
+  status      String   @default("PUBLISHED")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
