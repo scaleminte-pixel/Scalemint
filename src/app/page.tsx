@@ -18,39 +18,56 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 export default async function HomePage() {
-  // Fetch dynamic CMS data directly from Database
-  const [settings, sections, services, faqs, clientBrands, testimonials] = await Promise.all([
-    prisma.siteSettings.findUnique({ where: { id: 'global' } }),
-    prisma.pageSection.findMany({
-      where: { page: 'home', isPublished: true },
-      orderBy: { displayOrder: 'asc' },
-    }),
-    prisma.service.findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { displayOrder: 'asc' },
-      include: {
-        coverMedia: true,
-        packages: {
-          where: { status: 'PUBLISHED' },
-          orderBy: { displayOrder: 'asc' },
+  // Fetch dynamic CMS data directly from Database with resilient error handling
+  let settings: any = null;
+  let sections: any[] = [];
+  let services: any[] = [];
+  let faqs: any[] = [];
+  let clientBrands: any[] = [];
+  let testimonials: any[] = [];
+
+  try {
+    const results = await Promise.all([
+      prisma.siteSettings.findUnique({ where: { id: 'global' } }),
+      prisma.pageSection.findMany({
+        where: { page: 'home', isPublished: true },
+        orderBy: { displayOrder: 'asc' },
+      }),
+      prisma.service.findMany({
+        where: { status: 'PUBLISHED' },
+        orderBy: { displayOrder: 'asc' },
+        include: {
+          coverMedia: true,
+          packages: {
+            where: { status: 'PUBLISHED' },
+            orderBy: { displayOrder: 'asc' },
+          },
         },
-      },
-    }),
-    prisma.faq.findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { displayOrder: 'asc' },
-    }),
-    prisma.clientBrand.findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { displayOrder: 'asc' },
-      include: { logoMedia: true },
-    }),
-    prisma.testimonial.findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { displayOrder: 'asc' },
-      include: { photoMedia: true },
-    }),
-  ]);
+      }),
+      prisma.faq.findMany({
+        where: { status: 'PUBLISHED' },
+        orderBy: { displayOrder: 'asc' },
+      }),
+      prisma.clientBrand.findMany({
+        where: { status: 'PUBLISHED' },
+        orderBy: { displayOrder: 'asc' },
+        include: { logoMedia: true },
+      }),
+      prisma.testimonial.findMany({
+        where: { status: 'PUBLISHED' },
+        orderBy: { displayOrder: 'asc' },
+        include: { photoMedia: true },
+      }),
+    ]);
+    settings = results[0];
+    sections = results[1] || [];
+    services = results[2] || [];
+    faqs = results[3] || [];
+    clientBrands = results[4] || [];
+    testimonials = results[5] || [];
+  } catch (err) {
+    console.error('[HomePage DB Query Exception]:', err);
+  }
 
   // Map sections by key
   const secMap: Record<string, any> = {};

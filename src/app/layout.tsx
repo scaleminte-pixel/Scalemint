@@ -3,25 +3,39 @@ import './globals.css';
 import prisma from '@/lib/prisma';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await prisma.siteSettings.findUnique({
-    where: { id: 'global' },
-  });
+  try {
+    const settings = await prisma.siteSettings.findUnique({
+      where: { id: 'global' },
+    });
 
-  return {
-    title: settings?.defaultSeoTitle || 'Scalemint — 360° Creative & Performance Agency',
-    description:
-      settings?.defaultSeoDesc ||
-      'Scale your brand with strategic branding, websites, video editing, AI UGC, and Google Ads.',
-    icons: {
-      icon: '/favicon.ico',
-    },
-    openGraph: {
+    return {
       title: settings?.defaultSeoTitle || 'Scalemint — 360° Creative & Performance Agency',
-      description: settings?.defaultSeoDesc || 'Scale your brand with strategic branding, websites, video editing, AI UGC, and Google Ads.',
-      siteName: settings?.siteName || 'Scalemint',
-      type: 'website',
-    },
-  };
+      description:
+        settings?.defaultSeoDesc ||
+        'Scale your brand with strategic branding, websites, video editing, AI UGC, and Google Ads.',
+      icons: {
+        icon: '/favicon.ico',
+      },
+      openGraph: {
+        title: settings?.defaultSeoTitle || 'Scalemint — 360° Creative & Performance Agency',
+        description:
+          settings?.defaultSeoDesc ||
+          'Scale your brand with strategic branding, websites, video editing, AI UGC, and Google Ads.',
+        siteName: settings?.siteName || 'Scalemint',
+        type: 'website',
+      },
+    };
+  } catch (err) {
+    console.error('[RootLayout generateMetadata Error]:', err);
+    return {
+      title: 'Scalemint — 360° Creative & Performance Agency',
+      description:
+        'Scale your brand with strategic branding, websites, video editing, AI UGC, and Google Ads.',
+      icons: {
+        icon: '/favicon.ico',
+      },
+    };
+  }
 }
 
 import CustomCursor from '@/components/CustomCursor';
@@ -32,9 +46,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await prisma.siteSettings.findUnique({
-    where: { id: 'global' },
-  });
+  let settings = null;
+  try {
+    settings = await prisma.siteSettings.findUnique({
+      where: { id: 'global' },
+    });
+  } catch (err) {
+    console.error('[RootLayout Fetch Error]:', err);
+  }
 
   return (
     <html lang="en" className="scroll-smooth">
