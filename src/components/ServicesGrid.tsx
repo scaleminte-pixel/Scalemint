@@ -26,9 +26,17 @@ interface ServiceItem {
 
 interface ServicesGridProps {
   services: ServiceItem[];
+  sectionBadge?: string | null;
+  sectionTitle?: string | null;
+  sectionSubtitle?: string | null;
 }
 
-export default function ServicesGrid({ services }: ServicesGridProps) {
+export default function ServicesGrid({
+  services,
+  sectionBadge,
+  sectionTitle,
+  sectionSubtitle,
+}: ServicesGridProps) {
   const defaultVisuals: Record<string, { image: string; tag: string }> = {
     'branding-design': {
       image: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?q=80&w=1200&auto=format&fit=crop',
@@ -95,15 +103,15 @@ export default function ServicesGrid({ services }: ServicesGridProps) {
         <AnimateOnScroll variant="fadeUp" className="text-center max-w-3xl mx-auto space-y-3 mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20 shadow-glow-purple/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Comprehensive 360° Disciplines</span>
+            <span>{sectionBadge || 'Comprehensive 360° Disciplines'}</span>
           </div>
 
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            Six Specialized Pillars. One Unified Squad.
+            {sectionTitle || 'Six Specialized Pillars. One Unified Squad.'}
           </h2>
 
           <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
-            Every capability is executed with direct-response intent and aesthetic prestige so your brand commands authority and delivers commercial ROI.
+            {sectionSubtitle || 'Every capability is executed with direct-response intent and aesthetic prestige so your brand commands authority and delivers commercial ROI.'}
           </p>
         </AnimateOnScroll>
 

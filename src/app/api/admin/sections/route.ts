@@ -65,7 +65,10 @@ export async function PUT(request: Request) {
     });
 
     // Purge cached public homepage to reflect CMS update immediately
-    revalidatePath('/', 'page');
+    try {
+      revalidatePath('/', 'page');
+      revalidatePath('/', 'layout');
+    } catch (e) {}
 
     return NextResponse.json({
       success: true,
@@ -80,3 +83,8 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, error: 'Failed to update section' }, { status: 500 });
   }
 }
+
+export async function POST(request: Request) {
+  return PUT(request);
+}
+

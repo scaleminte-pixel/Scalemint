@@ -10,12 +10,14 @@ interface FeatureItem {
 }
 
 interface WhyChooseUsProps {
+  badge?: string | null;
   title?: string | null;
   subtitle?: string | null;
   features?: FeatureItem[] | null;
 }
 
 export default function WhyChooseUs({
+  badge = 'Competitive Advantage',
   title = 'Why Forward-Thinking Brands Partner With Scalemint',
   subtitle = 'No fragmented freelancers. No bloated corporate bureaucracy. Just one agile creative partner obsessed with your brand elevation and measurable ROI.',
   features,
@@ -60,7 +62,7 @@ export default function WhyChooseUs({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateOnScroll variant="fadeUp" className="text-center max-w-3xl mx-auto space-y-3 mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-            <span>Competitive Advantage</span>
+            <span>{badge || 'Competitive Advantage'}</span>
           </div>
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
             {title}

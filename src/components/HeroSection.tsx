@@ -49,11 +49,41 @@ export default function HeroSection({
 }: HeroSectionProps) {
   const [bookingOpen, setBookingOpen] = useState(false);
   const badgeText = metadata?.badge || 'Accepting Select Q2/Q3 Growth Partners';
-  const stats = metadata?.stats || [
-    { label: 'Core Capabilities', value: '360°' },
-    { label: 'Strategic Squad', value: '1 Dedicated' },
-    { label: 'Launch Speed', value: 'Sprint-Based' },
+  const trustBadges: string[] = metadata?.trustBadges && metadata.trustBadges.length > 0
+    ? metadata.trustBadges
+    : ['100% Source Code & IP Ownership', 'Sprint Delivery Timelines', 'Strict Non-Disclosure Guarantee'];
+
+  const orbitLabels: string[] = metadata?.orbitLabels && metadata.orbitLabels.length > 0
+    ? metadata.orbitLabels
+    : ['Branding', 'Web Dev', 'Video', 'Google Ads'];
+
+  const livePill: string = metadata?.livePill || 'Select Q2/Q3 Production Slots Active · Direct Senior Squad Access';
+
+  const defaultBento = [
+    {
+      eyebrow: 'Full-Stack Synergy',
+      value: '360°',
+      title: 'Core Capabilities',
+      desc: 'Branding, Next.js code, viral video, and Google Ads unified under one senior squad.',
+      accent: 'purple',
+    },
+    {
+      eyebrow: 'Sprint Velocity',
+      value: '100%',
+      title: 'Focus & Execution',
+      desc: 'Rigorous sprint delivery cadences with transparent milestones and asynchronous Slack updates.',
+      accent: 'blue',
+    },
+    {
+      eyebrow: 'Asset Security',
+      value: '1 Squad',
+      title: 'Creative Partner',
+      desc: 'Strict enterprise NDAs and 100% full intellectual property transfer on all deliverables.',
+      accent: 'emerald',
+    },
   ];
+
+  const bentoCards = metadata?.bentoCards && metadata.bentoCards.length > 0 ? metadata.bentoCards : defaultBento;
 
   return (
     <>
@@ -61,7 +91,8 @@ export default function HeroSection({
         {/* Dynamic ambient gradient spheres */}
         <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-purple-700/15 blur-[150px] pointer-events-none -z-10" />
         <div className="absolute top-1/3 left-1/4 w-[450px] h-[350px] bg-blue-600/12 blur-[140px] pointer-events-none -z-10" />
-        <div className="absolute bottom-0 right-1/4 w-[350px] h-[250px] bg-amber-600/8 blur-[120px] pointer-events-none -z-10" />        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="absolute bottom-0 right-1/4 w-[350px] h-[250px] bg-amber-600/8 blur-[120px] pointer-events-none -z-10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Text Content */}
             <motion.div
@@ -117,31 +148,29 @@ export default function HeroSection({
                 </Link>
               </motion.div>
 
-              {/* Trust Badges */}
+              {/* Dynamic Trust Badges */}
               <motion.div variants={fadeIn} transition={{ duration: 0.8, delay: 0.5 }} className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-5 sm:gap-7 text-xs text-gray-300 font-medium">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400" />
-                  <span>100% Source Code & IP Ownership</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-400" />
-                  <span>Sprint Delivery Timelines</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Strict Non-Disclosure Guarantee</span>
-                </div>
+                {trustBadges.map((badge, idx) => {
+                  const colors = ['text-purple-400', 'text-blue-400', 'text-emerald-400', 'text-amber-400'];
+                  const color = colors[idx % colors.length];
+                  return (
+                    <div key={idx} className="flex items-center gap-2">
+                      <CheckCircle2 className={`w-4 h-4 ${color}`} />
+                      <span>{badge}</span>
+                    </div>
+                  );
+                })}
               </motion.div>
             </motion.div>
 
-            {/* Right Column: 3D Animated Visual */}
+            {/* Right Column: 3D Animated Visual with dynamic orbitLabels */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.4, 0.25, 1] }}
               className="hidden lg:flex lg:col-span-5 items-center justify-center"
             >
-              <HeroVisual />
+              <HeroVisual orbitLabels={orbitLabels} />
             </motion.div>
           </div>
 
@@ -163,85 +192,42 @@ export default function HeroSection({
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
                 <span className="text-[11px] text-gray-300 font-medium tracking-wide">
-                  Select Q2/Q3 Production Slots Active · Direct Senior Squad Access
+                  {livePill}
                 </span>
               </div>
             </div>
 
-            {/* 3 Bento Cards with Glassmorphism & High-Contrast Metrics */}
+            {/* Dynamic Bento Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-              {/* Card 1 */}
-              <div className="group rounded-2xl p-6 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.08] hover:border-purple-500/50 transition-all duration-300 backdrop-blur-xl shadow-lg relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-500/20 transition-all" />
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-md border border-purple-500/20">
-                      Full-Stack Synergy
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_#38bdf8]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+              {bentoCards.map((card: any, idx: number) => {
+                const borderHover = idx === 0 ? 'hover:border-purple-500/50' : idx === 1 ? 'hover:border-blue-500/50' : 'hover:border-emerald-500/50';
+                const tagColor = idx === 0 ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' : idx === 1 ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+
+                return (
+                  <div
+                    key={idx}
+                    className={`group rounded-2xl p-6 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.08] ${borderHover} transition-all duration-300 backdrop-blur-xl shadow-lg relative overflow-hidden flex flex-col justify-between`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-md border ${tagColor}`}>
+                          {card.eyebrow || 'Specialized Capability'}
+                        </span>
+                      </div>
+                      <AnimatedCounter
+                        value={card.value || '360°'}
+                        className="font-heading text-4xl sm:text-5xl font-extrabold text-white tracking-tight"
+                      />
+                      <h4 className="text-sm font-bold text-gray-200 mt-2">
+                        {card.title || 'Core Service'}
+                      </h4>
                     </div>
+                    <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                      {card.desc || ''}
+                    </p>
                   </div>
-                  <AnimatedCounter
-                    value={stats[0]?.value || "360°"}
-                    className="font-heading text-4xl sm:text-5xl font-extrabold text-white tracking-tight"
-                  />
-                  <h4 className="text-sm font-bold text-gray-200 mt-2">
-                    {stats[0]?.label || "Unified Creative Squad"}
-                  </h4>
-                </div>
-                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-                  Branding, Next.js code, viral video, and Google Ads unified under one senior squad.
-                </p>
-              </div>
-
-              {/* Card 2 */}
-              <div className="group rounded-2xl p-6 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.08] hover:border-blue-500/50 transition-all duration-300 backdrop-blur-xl shadow-lg relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-blue-500/20 transition-all" />
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-md border border-blue-500/20">
-                      Sprint Velocity
-                    </span>
-                    <span className="text-[10px] font-bold text-gray-400">Zero Bloat</span>
-                  </div>
-                  <AnimatedCounter
-                    value={stats[1]?.value || "100%"}
-                    className="font-heading text-4xl sm:text-5xl font-extrabold text-white tracking-tight"
-                  />
-                  <h4 className="text-sm font-bold text-gray-200 mt-2">
-                    {stats[1]?.label || "Focus & Execution Standard"}
-                  </h4>
-                </div>
-                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-                  Rigorous sprint delivery cadences with transparent milestones and asynchronous Slack updates.
-                </p>
-              </div>
-
-              {/* Card 3 */}
-              <div className="group rounded-2xl p-6 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.08] hover:border-emerald-500/50 transition-all duration-300 backdrop-blur-xl shadow-lg relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-md border border-emerald-500/20">
-                      Asset Security
-                    </span>
-                    <span className="text-[10px] text-emerald-400 font-semibold">Protected IP</span>
-                  </div>
-                  <AnimatedCounter
-                    value={stats[2]?.value || "1 Squad"}
-                    className="font-heading text-4xl sm:text-5xl font-extrabold text-white tracking-tight"
-                  />
-                  <h4 className="text-sm font-bold text-gray-200 mt-2">
-                    {stats[2]?.label || "Complete Client Ownership"}
-                  </h4>
-                </div>
-                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-                  Strict enterprise NDAs and 100% full intellectual property transfer on all deliverables.
-                </p>
-              </div>
+                );
+              })}
             </div>
           </motion.div>
         </div>

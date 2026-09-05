@@ -7,7 +7,15 @@ import { motion } from 'framer-motion';
  * HeroVisual — Animated 3D-esque floating geometric solar composition
  * Pure, clean, minimalist floating visual without square containers.
  */
-export default function HeroVisual() {
+interface HeroVisualProps {
+  orbitLabels?: string[];
+}
+
+export default function HeroVisual({ orbitLabels }: HeroVisualProps) {
+  const label1 = orbitLabels?.[0] || 'Branding';
+  const label2 = orbitLabels?.[1] || 'Web Dev';
+  const label3 = orbitLabels?.[2] || 'Video';
+  const label4 = orbitLabels?.[3] || 'Google Ads';
   return (
     <div className="hero-visual-container">
       {/* Central glowing orb */}
@@ -81,7 +89,7 @@ export default function HeroVisual() {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
         </svg>
-        <span>Branding</span>
+        <span>{label1}</span>
       </motion.div>
 
       <motion.div
@@ -92,7 +100,7 @@ export default function HeroVisual() {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
         </svg>
-        <span>Web Dev</span>
+        <span>{label2}</span>
       </motion.div>
 
       <motion.div
@@ -103,7 +111,7 @@ export default function HeroVisual() {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
         </svg>
-        <span>Video</span>
+        <span>{label3}</span>
       </motion.div>
 
       <motion.div
@@ -114,7 +122,7 @@ export default function HeroVisual() {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" />
         </svg>
-        <span>Google Ads</span>
+        <span>{label4}</span>
       </motion.div>
 
       {/* Ambient glow layers */}

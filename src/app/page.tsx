@@ -86,6 +86,8 @@ export default async function HomePage() {
   }));
 
   const heroSection = secMap['hero'];
+  const servicesIntro = secMap['services_intro'];
+  const aboutSection = secMap['about'];
   const whySection = secMap['why_choose_us'];
   const processSection = secMap['process'];
   const finalCta = secMap['final_cta'];
@@ -116,13 +118,29 @@ export default async function HomePage() {
         <ClientsMarquee clients={clientBrands} />
 
         {/* 4. The 6 Core Services With Rich Visual Mockups */}
-        <ServicesGrid services={parsedServices} />
+        <ServicesGrid
+          services={parsedServices}
+          sectionBadge={servicesIntro?.metadata?.badge}
+          sectionTitle={servicesIntro?.title}
+          sectionSubtitle={servicesIntro?.subtitle}
+        />
 
         {/* 5. About Us Executive Section */}
-        <AboutSection />
+        <AboutSection
+          badge={aboutSection?.metadata?.badge}
+          title={aboutSection?.title}
+          paragraph1={aboutSection?.subtitle}
+          paragraph2={aboutSection?.metadata?.paragraph2}
+          checklist={aboutSection?.metadata?.checklist}
+          standardsBadge={aboutSection?.metadata?.standardsBadge}
+          standardsTitle={aboutSection?.metadata?.standardsTitle}
+          metrics={aboutSection?.metadata?.metrics}
+          ndaText={aboutSection?.metadata?.ndaText}
+        />
 
         {/* 6. Why Choose Us */}
         <WhyChooseUs
+          badge={whySection?.metadata?.badge}
           title={whySection?.title}
           subtitle={whySection?.subtitle}
           features={whySection?.metadata?.features}
@@ -130,6 +148,7 @@ export default async function HomePage() {
 
         {/* 7. Battle-Tested 5-Step Process */}
         <ProcessSection
+          badge={processSection?.metadata?.badge}
           title={processSection?.title}
           subtitle={processSection?.subtitle}
           steps={processSection?.metadata?.steps}

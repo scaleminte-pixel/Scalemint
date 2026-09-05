@@ -5,7 +5,54 @@ import { CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import AnimateOnScroll from './AnimateOnScroll';
 import AnimatedCounter from './AnimatedCounter';
 
-export default function AboutSection() {
+export interface MetricItem {
+  value: string;
+  desc: string;
+}
+
+export interface AboutSectionProps {
+  badge?: string | null;
+  title?: string | null;
+  paragraph1?: string | null;
+  paragraph2?: string | null;
+  checklist?: string[] | null;
+  standardsBadge?: string | null;
+  standardsTitle?: string | null;
+  metrics?: MetricItem[] | null;
+  ndaText?: string | null;
+}
+
+export default function AboutSection({
+  badge = 'Who We Are & Why We Exist',
+  title = 'One High-Velocity Partner For Ambitious Business Leaders',
+  paragraph1 = 'Most digital agencies fracture your brand across isolated teams: designers who do not understand conversion, developers who do not care about aesthetics, and media buyers who blame creatives for ad performance.',
+  paragraph2 = 'Scalemint was engineered to eliminate this disconnect. We provide enterprise founders, high-growth startups, and established companies with a single unified 360° creative and performance squad where your visual prestige, Next.js tech architecture, and customer acquisition funnels work in perfect synergy.',
+  checklist,
+  standardsBadge = 'Our Operating Standards',
+  standardsTitle = 'Engineered for Absolute Commercial Impact',
+  metrics,
+  ndaText = 'Strict enterprise non-disclosure agreements (NDAs) standard for all client engagements.',
+}: AboutSectionProps) {
+  const defaultChecklist = [
+    'Zero Corporate Bloat',
+    'Direct Access to Principals',
+    'Full Source Code & IP Ownership',
+    'Predictable Sprint Timelines',
+  ];
+
+  const defaultMetrics: MetricItem[] = [
+    { value: '360°', desc: 'Full Spectrum Synergy (Brand + Code + Media)' },
+    { value: '95+', desc: 'Google Core Web Vitals Performance Standard' },
+    { value: '100%', desc: 'Confidentiality & Exclusive Category Rights' },
+    { value: '24h', desc: 'Rapid Strategic Onboarding & Sprint Kickoff' },
+  ];
+
+  const activeChecklist = checklist && checklist.length > 0 ? checklist : defaultChecklist;
+  const activeMetrics = metrics && metrics.length > 0 ? metrics : defaultMetrics;
+
+  const checkColors = ['text-purple-400', 'text-blue-400', 'text-emerald-400', 'text-amber-400'];
+  const metricBorders = ['border-purple-500', 'border-blue-500', 'border-amber-500', 'border-emerald-500'];
+
   return (
     <section id="about" className="py-14 sm:py-16 relative overflow-hidden bg-agency-surface/35 border-t border-agency-border/60">
       {/* Background glow */}
@@ -17,33 +64,32 @@ export default function AboutSection() {
           <AnimateOnScroll variant="fadeLeft" duration={0.8} className="lg:col-span-6 space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Who We Are & Why We Exist</span>
+              <span>{badge || 'Who We Are & Why We Exist'}</span>
             </div>
 
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              One High-Velocity Partner For Ambitious Business Leaders
+              {title}
             </h2>
 
-            <p className="text-gray-300 text-base leading-relaxed">
-              Most digital agencies fracture your brand across isolated teams: designers who do not understand conversion, developers who do not care about aesthetics, and media buyers who blame creatives for ad performance.
-            </p>
+            {paragraph1 && (
+              <p className="text-gray-300 text-base leading-relaxed">
+                {paragraph1}
+              </p>
+            )}
 
-            <p className="text-gray-400 text-sm leading-relaxed">
-              Scalemint was engineered to eliminate this disconnect. We provide enterprise founders, high-growth startups, and established companies with a <strong className="text-white">single unified 360° creative and performance squad</strong> where your visual prestige, Next.js tech architecture, and customer acquisition funnels work in perfect synergy.
-            </p>
+            {paragraph2 && (
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {paragraph2}
+              </p>
+            )}
 
             {/* Credibility Checklist */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              {[
-                { text: 'Zero Corporate Bloat', color: 'text-purple-400' },
-                { text: 'Direct Access to Principals', color: 'text-blue-400' },
-                { text: 'Full Source Code & IP Ownership', color: 'text-emerald-400' },
-                { text: 'Predictable Sprint Timelines', color: 'text-amber-400' },
-              ].map((item, i) => (
+              {activeChecklist.map((item, i) => (
                 <AnimateOnScroll key={i} variant="fadeUp" delay={0.1 * i} duration={0.5}>
                   <div className="flex items-center gap-2.5 text-xs text-gray-200 font-medium">
-                    <CheckCircle2 className={`w-4 h-4 ${item.color} shrink-0`} />
-                    <span>{item.text}</span>
+                    <CheckCircle2 className={`w-4 h-4 ${checkColors[i % checkColors.length]} shrink-0`} />
+                    <span>{item}</span>
                   </div>
                 </AnimateOnScroll>
               ))}
@@ -56,22 +102,17 @@ export default function AboutSection() {
               <div className="rounded-2xl bg-agency-dark/95 border border-agency-border/80 p-8 sm:p-10 space-y-8">
                 <div>
                   <span className="text-xs uppercase tracking-widest text-purple-400 font-bold block">
-                    Our Operating Standards
+                    {standardsBadge || 'Our Operating Standards'}
                   </span>
                   <h3 className="font-heading text-2xl font-bold text-white mt-1">
-                    Engineered for Absolute Commercial Impact
+                    {standardsTitle || 'Engineered for Absolute Commercial Impact'}
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
-                  {[
-                    { value: '360°', desc: 'Full Spectrum Synergy (Brand + Code + Media)', color: 'border-purple-500' },
-                    { value: '95+', desc: 'Google Core Web Vitals Performance Standard', color: 'border-blue-500' },
-                    { value: '100%', desc: 'Confidentiality & Exclusive Category Rights', color: 'border-amber-500' },
-                    { value: '24h', desc: 'Rapid Strategic Onboarding & Sprint Kickoff', color: 'border-emerald-500' },
-                  ].map((stat, i) => (
+                  {activeMetrics.map((stat, i) => (
                     <AnimateOnScroll key={i} variant="scaleUp" delay={0.3 + i * 0.1} duration={0.5}>
-                      <div className={`space-y-1.5 border-l-2 ${stat.color} pl-4`}>
+                      <div className={`space-y-1.5 border-l-2 ${metricBorders[i % metricBorders.length]} pl-4`}>
                         <AnimatedCounter value={stat.value} className="font-heading text-3xl font-black text-white" />
                         <p className="text-xs text-gray-400 font-medium">{stat.desc}</p>
                       </div>
@@ -79,14 +120,16 @@ export default function AboutSection() {
                   ))}
                 </div>
 
-                <AnimateOnScroll variant="fadeUp" delay={0.6}>
-                  <div className="p-4 rounded-xl bg-agency-card/70 border border-agency-border flex items-center gap-3.5">
-                    <ShieldCheck className="w-6 h-6 text-purple-400 shrink-0" />
-                    <p className="text-xs text-gray-300 leading-snug">
-                      Strict enterprise non-disclosure agreements (NDAs) standard for all client engagements.
-                    </p>
-                  </div>
-                </AnimateOnScroll>
+                {ndaText && (
+                  <AnimateOnScroll variant="fadeUp" delay={0.6}>
+                    <div className="p-4 rounded-xl bg-agency-card/70 border border-agency-border flex items-center gap-3.5">
+                      <ShieldCheck className="w-6 h-6 text-purple-400 shrink-0" />
+                      <p className="text-xs text-gray-300 leading-snug">
+                        {ndaText}
+                      </p>
+                    </div>
+                  </AnimateOnScroll>
+                )}
               </div>
             </div>
           </AnimateOnScroll>

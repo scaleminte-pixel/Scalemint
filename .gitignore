@@ -30,3 +30,6 @@ prisma/*.db-journal
 # Operating System files
 .DS_Store
 Thumbs.db
+
+# Media uploads/videos
+*.mp4
