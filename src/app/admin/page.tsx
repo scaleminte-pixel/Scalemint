@@ -149,11 +149,18 @@ export default function AdminDashboardPage() {
 
   // Check auth session & load all backend data concurrently
   const checkAuthAndLoad = async () => {
+    // Safety watchdog: ensure loading spinner never hangs forever
+    const timeoutTimer = setTimeout(() => {
+      setLoading(false);
+    }, 4000);
+
     try {
       const authRes = await fetch('/api/admin/auth/me');
       const authData = await authRes.json();
       if (!authRes.ok || !authData.success) {
+        clearTimeout(timeoutTimer);
         setAdminUser(null);
+        setLoading(false);
         router.replace('/admin/login');
         return;
       }
@@ -231,6 +238,7 @@ export default function AdminDashboardPage() {
       setAdminUser(null);
       router.replace('/admin/login');
     } finally {
+      clearTimeout(timeoutTimer);
       setLoading(false);
     }
   };
