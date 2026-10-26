@@ -10,6 +10,8 @@ const leadSchema = z.object({
   whatsapp: z.string().optional(),
   company: z.string().optional(),
   serviceInterest: z.string().optional(),
+  serviceId: z.string().optional(),
+  packageId: z.string().optional(),
   message: z.string().min(5, 'Message must be at least 5 characters'),
   budget: z.string().optional(),
   utmSource: z.string().optional(),
@@ -38,6 +40,29 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validated = leadSchema.parse(body);
 
+    // Resolve published package server-side if packageId provided (never trust client price)
+    let resolvedPackageId: string | null = null;
+    let resolvedPackageName: string | null = null;
+    let resolvedPackagePrice: string | null = null;
+    let resolvedPackageCurrency: string | null = null;
+    let resolvedServiceId: string | null = validated.serviceId || null;
+
+    if (validated.packageId) {
+      const pkg = await prisma.servicePackage.findUnique({
+        where: { id: validated.packageId },
+        include: { service: true }
+      });
+      if (pkg && pkg.status === 'PUBLISHED') {
+        resolvedPackageId = pkg.id;
+        resolvedPackageName = pkg.name;
+        resolvedPackagePrice = pkg.price;
+        resolvedPackageCurrency = pkg.currency;
+        if (!resolvedServiceId && pkg.serviceId) {
+          resolvedServiceId = pkg.serviceId;
+        }
+      }
+    }
+
     const newLead = await prisma.lead.create({
       data: {
         name: validated.name,
@@ -45,9 +70,14 @@ export async function POST(request: Request) {
         phone: validated.phone || null,
         whatsapp: validated.whatsapp || null,
         company: validated.company || null,
-        serviceInterest: validated.serviceInterest || null,
+        serviceInterest: validated.serviceInterest || resolvedPackageName || null,
+        serviceId: resolvedServiceId,
+        packageId: resolvedPackageId,
+        packageName: resolvedPackageName,
+        packagePrice: resolvedPackagePrice,
+        packageCurrency: resolvedPackageCurrency,
         message: validated.message,
-        budget: validated.budget || null,
+        budget: validated.budget || (resolvedPackagePrice ? `${resolvedPackagePrice} (${resolvedPackageCurrency || 'USD'})` : null),
         utmSource: validated.utmSource || null,
         utmMedium: validated.utmMedium || null,
         utmCampaign: validated.utmCampaign || null,

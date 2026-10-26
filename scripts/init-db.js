@@ -37,6 +37,7 @@ try {
   execSync('node prisma/seed-portfolio.js', { stdio: 'inherit' });
   execSync('node prisma/seed-extra.js', { stdio: 'inherit' });
   execSync('node prisma/seed-sections.js', { stdio: 'inherit' });
+  execSync('node scripts/import-growth-packages.mjs', { stdio: 'inherit' });
 
   // 4. Ensure root and prisma files are both updated with the latest seed
   if (fs.existsSync(prismaDbPath)) {

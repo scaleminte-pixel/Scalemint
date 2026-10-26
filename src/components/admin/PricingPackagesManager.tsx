@@ -47,15 +47,11 @@ interface PricingPackagesManagerProps {
 }
 
 // Helper to format currency values safely
-function formatPriceDisplay(val?: string | number | null): string {
-  if (val === undefined || val === null || val === '') return '$0';
+function formatPriceDisplay(val?: string | number | null, currency: string = 'USD'): string {
+  if (val === undefined || val === null || val === '') return 'Custom';
   const str = String(val).trim();
-  if (str.startsWith('$')) return str;
-  const num = parseFloat(str.replace(/[^0-9.]/g, ''));
-  if (!isNaN(num)) {
-    return `$${num.toLocaleString()}`;
-  }
-  return `$${str}`;
+  // If user already specified symbol or unit (e.g. $990, €990, BDT 10000, $990 / mo), show as-is
+  return str;
 }
 
 // Helper to parse deliverables / features list

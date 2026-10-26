@@ -555,8 +555,8 @@ export default function AdminDashboardPage() {
               { id: 'calculator', label: 'Calculator Pricing', icon: Calculator },
               { id: 'leads', label: 'Leads & Inquiries', icon: Users, badge: leads.filter((l) => l.status === 'NEW').length },
               { id: 'bookings', label: 'Strategy Bookings', icon: Calendar, badge: bookings.filter((b) => b.status === 'PENDING').length },
-              { id: 'portfolio', label: 'Portfolio CMS', icon: Sparkles, badge: portfolioProjects.length },
-              { id: 'services', label: 'Core Services', icon: Briefcase, badge: services.length },
+              { id: 'services', label: 'Services & Growth Suite', icon: Briefcase, badge: services.length },
+              { id: 'portfolio', label: 'Portfolio (Archived)', icon: Sparkles, badge: portfolioProjects.length },
               { id: 'homepage', label: 'Homepage Sections', icon: FileText },
               { id: 'service_cms', label: 'Service Pages CMS', icon: Scale },
               { id: 'about_contact_cms', label: 'About & Contact CMS', icon: Layers },
@@ -891,10 +891,20 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
                       <div>
                         <span className="text-gray-500 font-semibold block">Service Interest</span>
                         <span className="text-gray-300 font-medium">{lead.serviceInterest || 'General Discovery'}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 font-semibold block">Selected Package</span>
+                        {lead.packageName ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold text-[11px]">
+                            {lead.packageName} ({lead.packagePrice || 'Configured'})
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">Direct Brief</span>
+                        )}
                       </div>
                       <div>
                         <span className="text-gray-500 font-semibold block">Target Budget</span>

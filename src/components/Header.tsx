@@ -142,85 +142,12 @@ export default function Header({
 
             {/* Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center gap-7">
-              {/* Interactive Services Dropdown */}
-              <div
-                ref={dropdownRef}
-                className="relative group/menu"
-                onMouseEnter={() => setServicesDropdownOpen(true)}
-              >
-                <button
-                  type="button"
-                  onClick={() => setServicesDropdownOpen(!servicesDropdownOpen)}
-                  className={`flex items-center gap-1.5 text-[14px] font-semibold tracking-normal transition-colors py-1 cursor-pointer ${
-                    servicesDropdownOpen ? 'text-purple-400' : 'text-gray-200 hover:text-white'
-                  }`}
-                  aria-expanded={servicesDropdownOpen}
-                >
-                  <span>Services</span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      servicesDropdownOpen ? 'rotate-180 text-purple-400' : 'text-gray-400 group-hover/menu:text-white'
-                    }`}
-                  />
-                </button>
-
-                {/* Dropdown Menu Window */}
-                <div
-                  onMouseLeave={() => setServicesDropdownOpen(false)}
-                  className={`absolute top-full -left-28 mt-3 w-[620px] rounded-3xl bg-[#0C091A]/95 backdrop-blur-3xl border border-white/15 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] ring-1 ring-white/10 transition-all duration-200 z-50 ${
-                    servicesDropdownOpen
-                      ? 'opacity-100 translate-y-0 pointer-events-auto block'
-                      : 'opacity-0 translate-y-2 pointer-events-none hidden lg:group-hover/menu:opacity-100 lg:group-hover/menu:translate-y-0 lg:group-hover/menu:pointer-events-auto lg:group-hover/menu:block'
-                  }`}
-                >
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08]">
-                    <span className="text-xs uppercase tracking-wider text-purple-400 font-bold font-mono">
-                      The 6 Core Disciplines
-                    </span>
-                    <Link
-                      href="/#services"
-                      onClick={() => setServicesDropdownOpen(false)}
-                      className="text-xs text-gray-300 hover:text-white flex items-center gap-1 group"
-                    >
-                      <span>View all overview</span>
-                      <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {coreServices.map((service) => {
-                      const Icon = service.icon;
-                      return (
-                        <Link
-                          key={service.href}
-                          href={service.href}
-                          onClick={() => setServicesDropdownOpen(false)}
-                          className="p-3 rounded-2xl hover:bg-white/[0.05] border border-transparent hover:border-white/[0.1] transition-all flex items-start gap-3 group"
-                        >
-                          <div className={`p-2.5 rounded-xl border ${service.color} shrink-0 group-hover:scale-105 transition-transform`}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div className="space-y-0.5 truncate">
-                            <span className="font-heading font-bold text-sm text-white group-hover:text-purple-300 transition-colors block truncate">
-                              {service.name}
-                            </span>
-                            <span className="text-[12px] text-gray-400 line-clamp-1 block">
-                              {service.desc}
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Portfolio Link */}
+              {/* Direct Consolidated Services & Packages Link */}
               <Link
-                href="/portfolio"
+                href="/services"
                 className="text-[14px] font-semibold tracking-normal text-gray-200 hover:text-purple-300 transition-colors relative group py-1"
               >
-                <span>Portfolio</span>
+                <span>Services & Packages</span>
                 <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-purple-400 rounded-full group-hover:w-full transition-all duration-300" />
               </Link>
 
@@ -230,15 +157,6 @@ export default function Header({
                 className="text-[14px] font-semibold tracking-normal text-gray-200 hover:text-purple-300 transition-colors relative group py-1"
               >
                 <span>About</span>
-                <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-purple-400 rounded-full group-hover:w-full transition-all duration-300" />
-              </Link>
-
-              {/* Pricing */}
-              <Link
-                href="/pricing"
-                className="text-[14px] font-semibold tracking-normal text-gray-200 hover:text-purple-300 transition-colors relative group py-1"
-              >
-                <span>Pricing</span>
                 <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-purple-400 rounded-full group-hover:w-full transition-all duration-300" />
               </Link>
 
@@ -302,59 +220,33 @@ export default function Header({
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden mx-4 mt-2 bg-[#0C091A]/95 backdrop-blur-2xl border border-white/15 rounded-3xl p-5 space-y-4 shadow-2xl animate-fadeIn">
-            {/* Services Group */}
-            <div>
-              <span className="text-xs uppercase tracking-wider text-purple-400 font-bold font-mono block mb-2">
-                Services
-              </span>
-              <div className="grid grid-cols-1 gap-1 pl-2 border-l border-white/10">
-                {coreServices.map((s) => (
-                  <Link
-                    key={s.name}
-                    href={s.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-xs text-gray-300 hover:text-purple-300 py-1.5 transition-colors"
-                  >
-                    {s.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Other links */}
-            <div className="space-y-1 pt-3 border-t border-white/10">
+            {/* Direct Links */}
+            <div className="space-y-1">
               <Link
-                href="/portfolio"
+                href="/services"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-1.5 transition-colors"
+                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-2 transition-colors border-b border-white/[0.06]"
               >
-                Portfolio
+                Services & Packages
               </Link>
               <Link
                 href="/about"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-1.5 transition-colors"
+                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-2 transition-colors border-b border-white/[0.06]"
               >
                 About Us
               </Link>
               <Link
-                href="/pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-1.5 transition-colors"
-              >
-                Pricing
-              </Link>
-              <Link
                 href="/blog"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-1.5 transition-colors"
+                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-2 transition-colors border-b border-white/[0.06]"
               >
                 Blog
               </Link>
               <Link
                 href="/contact"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-1.5 transition-colors"
+                className="text-sm font-semibold text-gray-200 hover:text-purple-300 block py-2 transition-colors"
               >
                 Contact
               </Link>

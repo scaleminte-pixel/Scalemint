@@ -153,7 +153,7 @@ export default function PricingSection({ services }: PricingSectionProps) {
                       <Link
                         href={`#contact?service=${encodeURIComponent(
                           activeService.name
-                        )}&package=${encodeURIComponent(pkg.name)}`}
+                        )}&packageId=${encodeURIComponent(pkg.id)}&package=${encodeURIComponent(pkg.name)}`}
                         className={`w-full py-3.5 rounded-xl font-heading font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
                           pkg.isPopular
                             ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-glow-purple hover:scale-[1.02]'

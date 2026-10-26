@@ -222,6 +222,10 @@ model Lead {
   serviceInterest String?
   serviceId       String?
   service         Service?   @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  packageId       String?
+  packageName     String?
+  packagePrice    String?
+  packageCurrency String?
   message         String
   budget          String?
   status          String     @default("NEW") // NEW, CONTACTED, QUALIFIED, PROPOSAL_SENT, WON, LOST

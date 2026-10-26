@@ -7,19 +7,29 @@ import AnimateOnScroll from './AnimateOnScroll';
 
 interface LeadFormProps {
   defaultService?: string;
+  defaultPackageId?: string;
+  defaultPackageName?: string;
 }
 
-export default function LeadForm({ defaultService = '' }: LeadFormProps) {
+export default function LeadForm({
+  defaultService = '',
+  defaultPackageId = '',
+  defaultPackageName = '',
+}: LeadFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     whatsapp: '',
     company: '',
-    serviceInterest: defaultService || 'Website Design',
+    serviceInterest: defaultService || 'Business Growth Packages',
     budget: '$2,000 - $5,000',
     message: '',
   });
+
+  const [selectedPackage, setSelectedPackage] = useState<{ id: string; name: string } | null>(
+    defaultPackageId && defaultPackageName ? { id: defaultPackageId, name: defaultPackageName } : null
+  );
 
   const [utmParams, setUtmParams] = useState({
     utmSource: '',
@@ -34,19 +44,49 @@ export default function LeadForm({ defaultService = '' }: LeadFormProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Extract UTMs on client mount
+  // Extract UTMs and preselected package from URL parameters (e.g. #contact?packageId=...&package=...)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      setUtmParams({
-        utmSource: urlParams.get('utm_source') || '',
-        utmMedium: urlParams.get('utm_medium') || '',
-        utmCampaign: urlParams.get('utm_campaign') || '',
-        utmTerm: urlParams.get('utm_term') || '',
-        utmContent: urlParams.get('utm_content') || '',
-        landingPage: window.location.pathname,
-        referrer: document.referrer || '',
-      });
+      const readUrlParams = () => {
+        // Check both search query and hash query
+        const urlParams = new URLSearchParams(window.location.search);
+        let hashParams = new URLSearchParams();
+        if (window.location.hash.includes('?')) {
+          hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        }
+
+        const pkgId = urlParams.get('packageId') || hashParams.get('packageId');
+        const pkgName = urlParams.get('package') || hashParams.get('package');
+        const srvName = urlParams.get('service') || hashParams.get('service');
+
+        if (pkgId && pkgName) {
+          setSelectedPackage({ id: pkgId, name: pkgName });
+          setFormData((prev) => ({
+            ...prev,
+            serviceInterest: srvName || 'Business Growth Packages',
+          }));
+        } else if (pkgName) {
+          setSelectedPackage({ id: '', name: pkgName });
+        }
+
+        if (srvName && !pkgName) {
+          setFormData((prev) => ({ ...prev, serviceInterest: srvName }));
+        }
+
+        setUtmParams({
+          utmSource: urlParams.get('utm_source') || '',
+          utmMedium: urlParams.get('utm_medium') || '',
+          utmCampaign: urlParams.get('utm_campaign') || '',
+          utmTerm: urlParams.get('utm_term') || '',
+          utmContent: urlParams.get('utm_content') || '',
+          landingPage: window.location.pathname,
+          referrer: document.referrer || '',
+        });
+      };
+
+      readUrlParams();
+      window.addEventListener('hashchange', readUrlParams);
+      return () => window.removeEventListener('hashchange', readUrlParams);
     }
   }, []);
 
@@ -58,6 +98,8 @@ export default function LeadForm({ defaultService = '' }: LeadFormProps) {
     try {
       const payload = {
         ...formData,
+        packageId: selectedPackage?.id || undefined,
+        packageName: selectedPackage?.name || undefined,
         ...utmParams,
       };
 
@@ -80,10 +122,11 @@ export default function LeadForm({ defaultService = '' }: LeadFormProps) {
         phone: '',
         whatsapp: '',
         company: '',
-        serviceInterest: 'Website Design',
+        serviceInterest: 'Business Growth Packages',
         budget: '$2,000 - $5,000',
         message: '',
       });
+      setSelectedPackage(null);
     } catch (err: any) {
       console.error('Submission error:', err);
       setStatus('error');
@@ -92,21 +135,18 @@ export default function LeadForm({ defaultService = '' }: LeadFormProps) {
   };
 
   const services = [
-    'Branding Design',
-    'Website Design',
-    'Video Editing',
-    'AI UGC Video Editing',
-    'Digital Marketing Service',
-    'Google Ads Service',
-    'Full 360° Agency Retainer',
+    'Business Growth Packages',
+    'Website & Client Management System',
+    'Reels Video Production (Monthly)',
+    'Social Media Management (Monthly)',
+    'Custom Turnkey Solution'
   ];
 
   const budgetBrackets = [
-    'Under $1,500',
-    '$1,500 - $3,000',
-    '$3,000 - $5,000',
-    '$5,000 - $10,000',
-    '$10,000+',
+    '$990 / mo (Business Boost)',
+    '$1,990 / mo (Growth Plus)',
+    '$2,990 / mo (Scale Pro)',
+    'Custom Scope / Enterprise Retainer'
   ];
 
   const inputClasses = "w-full px-4 py-3 rounded-xl bg-agency-dark/90 border border-agency-border focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 text-white text-sm transition-all duration-300 placeholder:text-gray-500";
@@ -153,6 +193,25 @@ export default function LeadForm({ defaultService = '' }: LeadFormProps) {
                 <p className="text-sm text-gray-400">
                   Fill out the quick brief below to receive a strategic estimate and consultation roadmap.
                 </p>
+
+                {/* Preselected Package Banner */}
+                {selectedPackage && (
+                  <div className="mt-3 p-3.5 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-between text-xs animate-fadeIn">
+                    <div className="flex items-center gap-2 text-purple-200">
+                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      <span>
+                        Selected Package: <strong className="text-white font-bold">{selectedPackage.name}</strong>
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPackage(null)}
+                      className="text-gray-400 hover:text-white text-[11px] underline ml-2"
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
+                )}
               </div>
 
               {status === 'error' && (

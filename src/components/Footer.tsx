@@ -72,23 +72,48 @@ export default function Footer({
             </div>
           </StaggerItem>
 
-          {/* Col 2: Services */}
+          {/* Col 2: Services & Packages */}
           <StaggerItem variant="fadeUp" className="space-y-3">
             <h4 className="font-heading text-xs font-bold tracking-wider uppercase text-purple-400">
-              Capabilities
+              Growth Packages
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm text-gray-400">
-              {services.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="hover:text-white hover:underline transition-colors flex items-center gap-1 group"
-                  >
-                    <span>{item.name}</span>
-                    <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link
+                  href="/services#business-boost"
+                  className="hover:text-white hover:underline transition-colors flex items-center gap-1 group"
+                >
+                  <span>Business Boost</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/services#growth-plus"
+                  className="hover:text-white hover:underline transition-colors flex items-center gap-1 group"
+                >
+                  <span>Growth Plus</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/services#scale-pro"
+                  className="hover:text-white hover:underline transition-colors flex items-center gap-1 group"
+                >
+                  <span>Scale Pro</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/services"
+                  className="text-purple-300 hover:text-white hover:underline transition-colors flex items-center gap-1 group pt-1 font-medium"
+                >
+                  <span>View All Deliverables</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
             </ul>
           </StaggerItem>
 
@@ -104,13 +129,8 @@ export default function Footer({
                 </Link>
               </li>
               <li>
-                <Link href="/portfolio" className="hover:text-white transition-colors">
-                  Portfolio & Cases
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="hover:text-white transition-colors">
-                  Pricing & Sprints
+                <Link href="/services" className="hover:text-white transition-colors">
+                  Services & Packages
                 </Link>
               </li>
               <li>

@@ -179,13 +179,13 @@ export default function BookingModal({
                   onChange={(e) => setFormData({ ...formData, serviceInterest: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-agency-dark border border-agency-border text-white text-xs"
                 >
-                  <option value="Branding Design">Branding Design</option>
-                  <option value="Website Design">Website Design</option>
-                  <option value="Video Editing">Video Editing</option>
-                  <option value="AI UGC Video Editing">AI UGC Video Editing</option>
-                  <option value="Digital Marketing Service">Digital Marketing Service</option>
-                  <option value="Google Ads Service">Google Ads Service</option>
-                  <option value="Full 360° Agency Retainer">Full 360° Agency Retainer</option>
+                  <option value="Business Growth Packages">Business Growth Packages (Overview)</option>
+                  <option value="Business Boost Package">Business Boost ($990 / mo)</option>
+                  <option value="Growth Plus Package">Growth Plus ($1,990 / mo)</option>
+                  <option value="Scale Pro Package">Scale Pro ($2,990 / mo)</option>
+                  <option value="Website & Client Management Setup">Website & Client Management Setup</option>
+                  <option value="Monthly Reels & Social Media">Monthly Reels & Social Media</option>
+                  <option value="Custom Enterprise Solution">Custom Enterprise Solution</option>
                 </select>
               </div>
 

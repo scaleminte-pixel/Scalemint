@@ -174,24 +174,28 @@ export async function PUT(request: Request) {
         : JSON.stringify(rawDeliverables)
       : undefined;
 
+    const origPriceStr = originalPrice !== undefined
+      ? (originalPrice === null || originalPrice === '' || originalPrice === 0 ? null : originalPrice.toString())
+      : undefined;
+
     const updated = await prisma.servicePackage.update({
       where: { id },
       data: {
         serviceId: serviceId !== undefined ? serviceId : undefined,
         name: name !== undefined ? name : undefined,
-        bestFor: bestFor !== undefined ? bestFor : undefined,
+        bestFor: bestFor !== undefined ? (bestFor || null) : undefined,
         price: price !== undefined ? price.toString() : undefined,
-        originalPrice: originalPrice !== undefined && originalPrice !== null && originalPrice !== '' ? originalPrice.toString() : undefined,
-        discount: discount !== undefined ? discount : undefined,
+        originalPrice: origPriceStr,
+        discount: discount !== undefined ? (discount || null) : undefined,
         billingType: billingType !== undefined ? billingType : undefined,
         currency: currency !== undefined ? currency : undefined,
         deliverables: deliverablesStr,
-        revisions: revisions !== undefined ? revisions : undefined,
-        timeline: timeline !== undefined ? timeline : undefined,
+        revisions: revisions !== undefined ? (revisions || null) : undefined,
+        timeline: timeline !== undefined ? (timeline || null) : undefined,
         ctaText: ctaText !== undefined ? ctaText : undefined,
         ctaLink: ctaLink !== undefined ? ctaLink : undefined,
-        badge: badge !== undefined ? badge : undefined,
-        guaranteeText: guaranteeText !== undefined ? guaranteeText : undefined,
+        badge: badge !== undefined ? (badge || null) : undefined,
+        guaranteeText: guaranteeText !== undefined ? (guaranteeText || null) : undefined,
         isPopular: isPopular !== undefined ? Boolean(isPopular) : undefined,
         displayOrder: displayOrder !== undefined ? parseInt(displayOrder) : undefined,
         status: status !== undefined ? status : undefined,

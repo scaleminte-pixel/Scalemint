@@ -103,13 +103,11 @@ async function handleUpdate(request: Request, id: string) {
       : undefined;
 
     const priceStr = price !== undefined && price !== null
-      ? (typeof price === 'string' && price.startsWith('$') ? price : `$${price.toString().replace(/^\$/, '')}`)
+      ? price.toString()
       : undefined;
 
-    const origPriceStr = originalPrice !== undefined && originalPrice !== null && originalPrice !== '' && originalPrice !== 0
-      ? (typeof originalPrice === 'string' && originalPrice.startsWith('$') ? originalPrice : `$${originalPrice.toString().replace(/^\$/, '')}`)
-      : originalPrice === null || originalPrice === '' || originalPrice === 0
-      ? null
+    const origPriceStr = originalPrice !== undefined
+      ? (originalPrice === null || originalPrice === '' || originalPrice === 0 ? null : originalPrice.toString())
       : undefined;
 
     const updated = await prisma.servicePackage.update({

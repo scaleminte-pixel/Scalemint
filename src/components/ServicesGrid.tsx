@@ -103,82 +103,94 @@ export default function ServicesGrid({
         <AnimateOnScroll variant="fadeUp" className="text-center max-w-3xl mx-auto space-y-3 mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20 shadow-glow-purple/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>{sectionBadge || 'Comprehensive 360° Disciplines'}</span>
+            <span>{sectionBadge || 'Consolidated Growth Engine'}</span>
           </div>
 
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            {sectionTitle || 'Six Specialized Pillars. One Unified Squad.'}
+            {sectionTitle || 'Everything Existing Businesses Need to Scale'}
           </h2>
 
           <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
-            {sectionSubtitle || 'Every capability is executed with direct-response intent and aesthetic prestige so your brand commands authority and delivers commercial ROI.'}
+            {sectionSubtitle || 'One consolidated monthly growth partnership: high-converting web engineering, automated client CRM, viral short-form video reels, and complete social media management.'}
           </p>
         </AnimateOnScroll>
 
-        {/* Clean Minimal Service Cards */}
-        <StaggerContainer staggerDelay={0.12} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => {
-            const visual = defaultVisuals[service.slug] || {
-              image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1200&auto=format&fit=crop',
-              tag: 'Full Spectrum',
-            };
-
-            const displayImage = service.coverMedia?.publicUrl || visual.image;
-
-            return (
-              <StaggerItem key={service.id || service.slug} variant="fadeUp">
-                <Link
-                  href={`/services/${service.slug}`}
-                  className={`block glass-card rounded-2xl overflow-hidden border border-agency-border group transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover ${borderColors[index % borderColors.length]} h-full`}
-                >
-                  {/* Visual Image */}
+        {/* 4 Core Pillars Grid */}
+        <StaggerContainer staggerDelay={0.12} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            {
+              title: 'Website & Design',
+              tag: 'Next.js & UI/UX',
+              desc: 'Up to 15-page bespoke flagships, micro-animations, free domain & cloud hosting.',
+              image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop',
+            },
+            {
+              title: 'Client Management CRM',
+              tag: 'Sales & Pipelines',
+              desc: 'Custom sales stages, lead assignment, follow-up alerts, payment records & PDF invoices.',
+              image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop',
+            },
+            {
+              title: 'Monthly High-Retention Reels',
+              tag: '9:16 Short-Form Video',
+              desc: '4 to 12 monthly video reels engineered to hook attention and drive viral organic reach.',
+              image: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=800&auto=format&fit=crop',
+            },
+            {
+              title: 'Social Media Management',
+              tag: 'Omnichannel Distribution',
+              desc: 'Multi-platform post scheduling, carousels, stories, daily engagement & executive strategy.',
+              image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop',
+            },
+          ].map((pillar, index) => (
+            <StaggerItem key={pillar.title} variant="fadeUp">
+              <Link
+                href="/services#packages"
+                className="block glass-card rounded-2xl overflow-hidden border border-agency-border group transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover hover:border-purple-500/50 h-full flex flex-col justify-between"
+              >
+                <div>
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-agency-dark">
                     <img
-                      src={displayImage}
-                      alt={service.coverMedia?.altText || service.name}
+                      src={pillar.image}
+                      alt={pillar.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#10101C] via-transparent to-black/20" />
-
-                    {/* Top Badges */}
-                    <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/10 uppercase tracking-wider">
-                        {visual.tag}
-                      </span>
-                      <span className="font-heading font-black text-xs text-white/70">
-                        0{index + 1}
-                      </span>
-                    </div>
+                    <span className="absolute top-3.5 left-3.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/10 uppercase tracking-wider">
+                      {pillar.tag}
+                    </span>
                   </div>
 
-                  {/* Minimal Card Content — Name + Icon + CTA Only */}
-                  <div className="p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-agency-dark flex items-center justify-center border border-agency-border group-hover:border-purple-500/50 transition-colors shrink-0">
-                        {getIcon(service.slug)}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-heading text-lg font-bold text-white group-hover:text-purple-300 transition-colors leading-snug truncate">
-                          {service.name}
-                        </h3>
-                        {service.tagline && (
-                          <p className="text-[11px] text-gray-400 font-medium truncate">
-                            {service.tagline}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="w-9 h-9 rounded-full bg-agency-card border border-agency-border flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:border-purple-500 transition-all">
-                      <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-                    </div>
+                  <div className="p-5 space-y-2">
+                    <h3 className="font-heading text-base font-bold text-white group-hover:text-purple-300 transition-colors">
+                      {pillar.title}
+                    </h3>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      {pillar.desc}
+                    </p>
                   </div>
-                </Link>
-              </StaggerItem>
-            );
-          })}
+                </div>
+
+                <div className="px-5 pb-5 pt-2 flex items-center justify-between text-xs font-semibold text-purple-400 group-hover:text-purple-300 transition-colors border-t border-agency-border/40">
+                  <span>Explore Deliverables</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+            </StaggerItem>
+          ))}
         </StaggerContainer>
+
+        {/* View All Packages CTA Link */}
+        <div className="mt-10 text-center">
+          <Link
+            href="/services"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-heading font-semibold text-xs shadow-glow-purple hover:scale-105 transition-all"
+          >
+            <span>View All Services & Packages</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );
