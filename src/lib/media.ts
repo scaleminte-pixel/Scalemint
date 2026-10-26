@@ -35,10 +35,11 @@ export async function processAndSaveImage(
   const randomStr = Math.random().toString(36).substring(2, 8);
   const extMatch = originalFilename.match(/\.([a-zA-Z0-9]+)$/);
   const ext = extMatch ? extMatch[1].toLowerCase() : 'png';
-  const cleanBase = originalFilename
+  const cleanBase = path
+    .basename(originalFilename)
     .replace(/\.[^/.]+$/, '')
     .replace(/[^a-zA-Z0-9_-]/g, '_')
-    .substring(0, 30);
+    .substring(0, 30) || 'upload';
 
   // 1. Handle SVG directly (never convert vectors to raster WebP)
   if (ext === 'svg') {
@@ -186,6 +187,16 @@ export async function safelyDeleteMediaAsset(id: string) {
   await prisma.siteSettings.updateMany({
     where: { faviconMediaId: id },
     data: { faviconMediaId: null },
+  });
+
+  // 2b. Unlink blog posts and dynamic blocks if set
+  await prisma.blogPost.updateMany({
+    where: { coverMediaId: id },
+    data: { coverMediaId: null },
+  });
+  await prisma.dynamicBlock.updateMany({
+    where: { coverMediaId: id },
+    data: { coverMediaId: null },
   });
 
   // 3. Delete file from disk if exists

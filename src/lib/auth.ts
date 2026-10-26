@@ -3,9 +3,15 @@ import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import prisma from './prisma';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'scalemint_super_secure_jwt_secret_key_2026_x99'
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    '[FATAL] JWT_SECRET environment variable is not set. ' +
+    'Please set a strong, random JWT_SECRET in your .env file. ' +
+    'The application cannot start without it.'
+  );
+}
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export const COOKIE_NAME = 'scalemint_admin_token';
 
@@ -55,3 +61,24 @@ export async function requireAdmin(): Promise<AdminJwtPayload> {
   }
   return session;
 }
+
+/**
+ * Require admin with a specific role or higher.
+ * Role hierarchy: SUPER_ADMIN > ADMIN > EDITOR
+ */
+const ROLE_HIERARCHY: Record<string, number> = {
+  EDITOR: 1,
+  ADMIN: 2,
+  SUPER_ADMIN: 3,
+};
+
+export async function requireRole(minimumRole: string): Promise<AdminJwtPayload> {
+  const session = await requireAdmin();
+  const userLevel = ROLE_HIERARCHY[session.role] || 0;
+  const requiredLevel = ROLE_HIERARCHY[minimumRole] || 0;
+  if (userLevel < requiredLevel) {
+    throw new Error('Forbidden');
+  }
+  return session;
+}
+

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { safeJsonParse } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,11 +30,11 @@ export async function GET(
 
     const parsed = {
       ...service,
-      whatIsIncluded: service.whatIsIncluded ? JSON.parse(service.whatIsIncluded) : [],
-      benefits: service.benefits ? JSON.parse(service.benefits) : [],
+      whatIsIncluded: safeJsonParse<string[]>(service.whatIsIncluded, []),
+      benefits: safeJsonParse<string[]>(service.benefits, []),
       packages: service.packages.map((pkg) => ({
         ...pkg,
-        deliverables: pkg.deliverables ? JSON.parse(pkg.deliverables) : [],
+        deliverables: safeJsonParse<string[]>(pkg.deliverables, []),
       })),
     };
 

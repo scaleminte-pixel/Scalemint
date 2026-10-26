@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 // GET all portfolio projects
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const { searchParams } = new URL(request.url);
     const categorySlug = searchParams.get('category');
 
@@ -32,7 +33,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, projects, categories });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    return NextResponse.json({ success: false, error: 'Failed to fetch portfolio projects' }, { status: 500 });
   }
 }
 

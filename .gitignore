@@ -21,11 +21,15 @@ yarn-error.log*
 /backups
 prisma/*.db-journal
 
-# Local Environment files
+# Environment files (contain secrets)
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# SQLite database files (contain user data)
+*.db
 
 # Operating System files
 .DS_Store

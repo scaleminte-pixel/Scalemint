@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { safeJsonParse } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +44,7 @@ export async function GET() {
     for (const sec of sections) {
       sectionsMap[sec.sectionKey] = {
         ...sec,
-        metadata: sec.metadata ? JSON.parse(sec.metadata) : null,
+        metadata: safeJsonParse<any>(sec.metadata, null),
       };
     }
 

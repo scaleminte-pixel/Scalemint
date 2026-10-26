@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { safeParseInt } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,15 +43,18 @@ export async function POST(request: Request) {
       );
     }
 
+    const parsedRating = rating !== undefined ? Math.max(1, Math.min(5, safeParseInt(rating, 5))) : 5;
+    const parsedDisplayOrder = safeParseInt(displayOrder, 0);
+
     const testimonial = await prisma.testimonial.create({
       data: {
         clientName,
         clientRole: clientRole || null,
         companyName: companyName || null,
         quote,
-        rating: rating ? parseInt(rating) : 5,
+        rating: parsedRating,
         photoMediaId: photoMediaId || null,
-        displayOrder: displayOrder ? parseInt(displayOrder) : 0,
+        displayOrder: parsedDisplayOrder,
         status: status || 'PUBLISHED',
       },
       include: { photoMedia: true },
@@ -98,9 +102,9 @@ export async function PUT(request: Request) {
         ...(clientRole !== undefined && { clientRole }),
         ...(companyName !== undefined && { companyName }),
         ...(quote && { quote }),
-        ...(rating !== undefined && { rating: parseInt(rating) }),
+        ...(rating !== undefined && { rating: Math.max(1, Math.min(5, safeParseInt(rating, 5))) }),
         ...(photoMediaId !== undefined && { photoMediaId }),
-        ...(displayOrder !== undefined && { displayOrder: parseInt(displayOrder) }),
+        ...(displayOrder !== undefined && { displayOrder: safeParseInt(displayOrder, 0) }),
         ...(status && { status }),
       },
       include: { photoMedia: true },

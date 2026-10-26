@@ -21,3 +21,22 @@ export function safeJsonParse<T>(val: string | null | undefined, fallback: T): T
     return fallback;
   }
 }
+
+/**
+ * Safe parseInt that returns a fallback (default 0) instead of NaN.
+ */
+export function safeParseInt(val: any, fallback: number = 0): number {
+  if (val === undefined || val === null || val === '') return fallback;
+  const parsed = parseInt(String(val), 10);
+  return isNaN(parsed) ? fallback : parsed;
+}
+
+/**
+ * Safe parseFloat that returns a fallback instead of NaN.
+ */
+export function safeParseFloat(val: any, fallback: number = 0): number {
+  if (val === undefined || val === null || val === '') return fallback;
+  const parsed = parseFloat(String(val));
+  return isNaN(parsed) ? fallback : parsed;
+}
+

@@ -153,7 +153,8 @@ export default function AdminDashboardPage() {
       const authRes = await fetch('/api/admin/auth/me');
       const authData = await authRes.json();
       if (!authRes.ok || !authData.success) {
-        router.push('/admin/login');
+        setAdminUser(null);
+        router.replace('/admin/login');
         return;
       }
       setAdminUser(authData.admin);
@@ -227,6 +228,8 @@ export default function AdminDashboardPage() {
       if (clientsD.success) setClients(clientsD.data || []);
     } catch (err) {
       console.error('Error loading admin data:', err);
+      setAdminUser(null);
+      router.replace('/admin/login');
     } finally {
       setLoading(false);
     }
@@ -237,8 +240,11 @@ export default function AdminDashboardPage() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch('/api/admin/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
+    try {
+      await fetch('/api/admin/auth/logout', { method: 'POST' });
+    } catch {}
+    setAdminUser(null);
+    router.replace('/admin/login');
   };
 
   // 1. Lead Status & Notes handler
@@ -491,6 +497,26 @@ export default function AdminDashboardPage() {
   const processSection = sections.find((s) => s.page === 'home' && s.sectionKey === 'process') || {};
   const finalCtaSection = sections.find((s) => s.page === 'home' && s.sectionKey === 'final_cta') || {};
   const aboutMissionSection = sections.find((s) => s.page === 'about' && s.sectionKey === 'mission') || {};
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-agency-dark flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center p-6">
+          <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center shadow-glow-purple">
+            <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-sm">Verifying Admin Session</h3>
+            <p className="text-xs text-gray-400 mt-1">Please wait while we verify your credentials...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!adminUser) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-agency-dark flex flex-col md:flex-row text-gray-200">

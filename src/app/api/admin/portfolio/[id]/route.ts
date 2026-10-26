@@ -11,6 +11,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    await requireAdmin();
     const { id } = params;
     const project = await prisma.portfolioProject.findUnique({
       where: { id },
@@ -30,7 +31,10 @@ export async function GET(
 
     return NextResponse.json({ success: true, project });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    return NextResponse.json({ success: false, error: 'Failed to fetch project' }, { status: 500 });
   }
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 const leadSchema = z.object({
   name: z.string().min(2, 'Name is required (at least 2 characters)'),
@@ -20,8 +21,20 @@ const leadSchema = z.object({
   referrer: z.string().optional(),
 });
 
+const LEAD_RATE_LIMIT = { maxRequests: 5, windowSeconds: 60 * 60 }; // 5 per hour
+
 export async function POST(request: Request) {
   try {
+    // Rate limit check
+    const ip = getClientIp(request);
+    const { allowed, retryAfterSeconds } = checkRateLimit(`lead:${ip}`, LEAD_RATE_LIMIT);
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many submissions. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json();
     const validated = leadSchema.parse(body);
 

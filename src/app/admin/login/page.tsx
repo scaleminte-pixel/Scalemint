@@ -6,8 +6,8 @@ import { Lock, Mail, ArrowRight, Loader2, Sparkles, AlertCircle } from 'lucide-r
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@scalemint.com');
-  const [password, setPassword] = useState('AdminPassword2026!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -117,11 +117,7 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-agency-border/60 text-center">
-            <span className="text-[11px] text-gray-400">
-              Default Development Admin: <code className="text-purple-300">admin@scalemint.com</code>
-            </span>
-          </div>
+
         </div>
       </div>
     </div>
