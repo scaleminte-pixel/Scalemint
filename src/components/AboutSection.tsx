@@ -24,26 +24,26 @@ export interface AboutSectionProps {
 
 export default function AboutSection({
   badge = 'Who We Are & Why We Exist',
-  title = 'One High-Velocity Partner For Ambitious Business Leaders',
-  paragraph1 = 'Most digital agencies fracture your brand across isolated teams: designers who do not understand conversion, developers who do not care about aesthetics, and media buyers who blame creatives for ad performance.',
-  paragraph2 = 'Scalemint was engineered to eliminate this disconnect. We provide enterprise founders, high-growth startups, and established companies with a single unified 360° creative and performance squad where your visual prestige, Next.js tech architecture, and customer acquisition funnels work in perfect synergy.',
+  title = 'One Unified Growth Engine For Ambitious Business Leaders',
+  paragraph1 = 'Most businesses waste months coordinating disconnected providers: web designers who ignore conversions, CRM tools left unconfigured, video editors delivering random clips, and social managers posting without commercial strategy.',
+  paragraph2 = 'Scalemint was engineered as the all-in-one antidote. We combine custom high-speed websites, automated client management CRMs, monthly viral Reels, and complete social media management into one predictable, high-velocity growth engine.',
   checklist,
   standardsBadge = 'Our Operating Standards',
-  standardsTitle = 'Engineered for Absolute Commercial Impact',
+  standardsTitle = 'Engineered for Absolute Commercial Growth',
   metrics,
   ndaText = 'Strict enterprise non-disclosure agreements (NDAs) standard for all client engagements.',
 }: AboutSectionProps) {
   const defaultChecklist = [
-    'Zero Corporate Bloat',
-    'Direct Access to Principals',
-    'Full Source Code & IP Ownership',
-    'Predictable Sprint Timelines',
+    'Turnkey Website + CRM Setup',
+    'Monthly High-Retention Reels',
+    'Full Source & 100% IP Ownership',
+    'Dedicated Growth Squad & Sprints',
   ];
 
   const defaultMetrics: MetricItem[] = [
-    { value: '360°', desc: 'Full Spectrum Synergy (Brand + Code + Media)' },
-    { value: '95+', desc: 'Google Core Web Vitals Performance Standard' },
-    { value: '100%', desc: 'Confidentiality & Exclusive Category Rights' },
+    { value: '360°', desc: 'All-In-One Suite (Web + CRM + Reels + Social)' },
+    { value: '3x', desc: 'Faster Business Growth & Lead Conversion' },
+    { value: '100%', desc: 'Full Asset, Code & Social Account Ownership' },
     { value: '24h', desc: 'Rapid Strategic Onboarding & Sprint Kickoff' },
   ];
 

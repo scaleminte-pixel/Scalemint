@@ -84,57 +84,135 @@ export default function AboutContactCMS({ showNotification }: AboutContactCMSPro
       const res = await fetch('/api/admin/sections');
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        // About
+        // About Hero
         const abHero = data.data.find((s: any) => s.page === 'about' && s.sectionKey === 'hero');
-        if (abHero && abHero.content) {
-          const c = typeof abHero.content === 'string' ? JSON.parse(abHero.content) : abHero.content;
+        if (abHero) {
+          let c: any = {};
+          if (abHero.content) {
+            try {
+              c = typeof abHero.content === 'string' ? JSON.parse(abHero.content) : abHero.content;
+            } catch {
+              c = {};
+            }
+          }
+          let m: any = {};
+          if (abHero.metadata) {
+            try {
+              m = typeof abHero.metadata === 'string' ? JSON.parse(abHero.metadata) : abHero.metadata;
+            } catch {
+              m = {};
+            }
+          }
           setAboutHero({
-            badge: c.badge || aboutHero.badge,
-            title: c.title || aboutHero.title,
-            subtitle: c.subtitle || aboutHero.subtitle,
-            stats: Array.isArray(c.stats) && c.stats.length > 0 ? c.stats : aboutHero.stats,
+            badge: m.badge || c.badge || aboutHero.badge,
+            title: abHero.title || c.title || aboutHero.title,
+            subtitle: abHero.subtitle || c.subtitle || aboutHero.subtitle,
+            stats: Array.isArray(m.stats) && m.stats.length > 0 ? m.stats : Array.isArray(c.stats) && c.stats.length > 0 ? c.stats : aboutHero.stats,
           });
         }
 
+        // About Thesis
         const abThesis = data.data.find((s: any) => s.page === 'about' && s.sectionKey === 'thesis');
-        if (abThesis && abThesis.content) {
-          const c = typeof abThesis.content === 'string' ? JSON.parse(abThesis.content) : abThesis.content;
+        if (abThesis) {
+          let c: any = {};
+          if (abThesis.content) {
+            try {
+              c = typeof abThesis.content === 'string' ? JSON.parse(abThesis.content) : abThesis.content;
+            } catch {
+              c = { desc: abThesis.content };
+            }
+          }
+          let m: any = {};
+          if (abThesis.metadata) {
+            try {
+              m = typeof abThesis.metadata === 'string' ? JSON.parse(abThesis.metadata) : abThesis.metadata;
+            } catch {
+              m = {};
+            }
+          }
           setAboutThesis({
-            badge: c.badge || aboutThesis.badge,
-            title: c.title || aboutThesis.title,
-            desc: c.desc || aboutThesis.desc,
-            nonNegotiablesTitle: c.nonNegotiablesTitle || aboutThesis.nonNegotiablesTitle,
-            nonNegotiables: Array.isArray(c.nonNegotiables) && c.nonNegotiables.length > 0 ? c.nonNegotiables : aboutThesis.nonNegotiables,
+            badge: m.badge || c.badge || aboutThesis.badge,
+            title: abThesis.title || c.title || aboutThesis.title,
+            desc: abThesis.subtitle || c.desc || (typeof abThesis.content === 'string' ? abThesis.content : '') || aboutThesis.desc,
+            nonNegotiablesTitle: m.nonNegotiablesTitle || c.nonNegotiablesTitle || aboutThesis.nonNegotiablesTitle,
+            nonNegotiables: Array.isArray(m.nonNegotiables) && m.nonNegotiables.length > 0 ? m.nonNegotiables : Array.isArray(c.nonNegotiables) && c.nonNegotiables.length > 0 ? c.nonNegotiables : aboutThesis.nonNegotiables,
           });
         }
 
+        // About Process
         const abProcess = data.data.find((s: any) => s.page === 'about' && s.sectionKey === 'process');
-        if (abProcess && abProcess.content) {
-          const c = typeof abProcess.content === 'string' ? JSON.parse(abProcess.content) : abProcess.content;
+        if (abProcess) {
+          let c: any = {};
+          if (abProcess.content) {
+            try {
+              c = typeof abProcess.content === 'string' ? JSON.parse(abProcess.content) : abProcess.content;
+            } catch {
+              c = {};
+            }
+          }
+          let m: any = {};
+          if (abProcess.metadata) {
+            try {
+              m = typeof abProcess.metadata === 'string' ? JSON.parse(abProcess.metadata) : abProcess.metadata;
+            } catch {
+              m = {};
+            }
+          }
           setAboutProcess({
-            badge: c.badge || aboutProcess.badge,
-            title: c.title || aboutProcess.title,
-            subtitle: c.subtitle || aboutProcess.subtitle,
-            steps: Array.isArray(c.steps) && c.steps.length > 0 ? c.steps : aboutProcess.steps,
+            badge: m.badge || c.badge || aboutProcess.badge,
+            title: abProcess.title || c.title || aboutProcess.title,
+            subtitle: abProcess.subtitle || c.subtitle || aboutProcess.subtitle,
+            steps: Array.isArray(m.steps) && m.steps.length > 0 ? m.steps : Array.isArray(c.steps) && c.steps.length > 0 ? c.steps : aboutProcess.steps,
           });
         }
 
-        // Contact
+        // Contact Hero
         const ctHero = data.data.find((s: any) => s.page === 'contact' && s.sectionKey === 'hero');
-        if (ctHero && ctHero.content) {
-          const c = typeof ctHero.content === 'string' ? JSON.parse(ctHero.content) : ctHero.content;
+        if (ctHero) {
+          let c: any = {};
+          if (ctHero.content) {
+            try {
+              c = typeof ctHero.content === 'string' ? JSON.parse(ctHero.content) : ctHero.content;
+            } catch {
+              c = {};
+            }
+          }
+          let m: any = {};
+          if (ctHero.metadata) {
+            try {
+              m = typeof ctHero.metadata === 'string' ? JSON.parse(ctHero.metadata) : ctHero.metadata;
+            } catch {
+              m = {};
+            }
+          }
           setContactHero({
-            badge: c.badge || contactHero.badge,
-            title: c.title || contactHero.title,
-            subtitle: c.subtitle || contactHero.subtitle,
+            badge: m.badge || c.badge || contactHero.badge,
+            title: ctHero.title || c.title || contactHero.title,
+            subtitle: ctHero.subtitle || c.subtitle || contactHero.subtitle,
           });
         }
 
+        // Contact Guarantees
         const ctGuar = data.data.find((s: any) => s.page === 'contact' && s.sectionKey === 'guarantees');
-        if (ctGuar && ctGuar.content) {
-          const c = typeof ctGuar.content === 'string' ? JSON.parse(ctGuar.content) : ctGuar.content;
+        if (ctGuar) {
+          let c: any = {};
+          if (ctGuar.content) {
+            try {
+              c = typeof ctGuar.content === 'string' ? JSON.parse(ctGuar.content) : ctGuar.content;
+            } catch {
+              c = {};
+            }
+          }
+          let m: any = {};
+          if (ctGuar.metadata) {
+            try {
+              m = typeof ctGuar.metadata === 'string' ? JSON.parse(ctGuar.metadata) : ctGuar.metadata;
+            } catch {
+              m = {};
+            }
+          }
           setContactGuarantees({
-            items: Array.isArray(c.items) && c.items.length > 0 ? c.items : contactGuarantees.items,
+            items: Array.isArray(m.items) && m.items.length > 0 ? m.items : Array.isArray(c.items) && c.items.length > 0 ? c.items : contactGuarantees.items,
           });
         }
       }
@@ -149,13 +227,47 @@ export default function AboutContactCMS({ showNotification }: AboutContactCMSPro
     loadData();
   }, []);
 
-  const saveSection = async (page: string, sectionKey: string, content: any) => {
+  const saveSection = async (page: string, sectionKey: string, payload: any) => {
     setSavingKey(`${page}_${sectionKey}`);
     try {
+      let body: any = { page, sectionKey };
+      if (page === 'about' && sectionKey === 'hero') {
+        body.title = payload.title;
+        body.subtitle = payload.subtitle;
+        body.metadata = {
+          badge: payload.badge,
+          stats: payload.stats,
+        };
+      } else if (page === 'about' && sectionKey === 'thesis') {
+        body.title = payload.title;
+        body.subtitle = payload.desc;
+        body.content = payload.desc;
+        body.metadata = {
+          badge: payload.badge,
+          nonNegotiablesTitle: payload.nonNegotiablesTitle,
+          nonNegotiables: payload.nonNegotiables,
+        };
+      } else if (page === 'about' && sectionKey === 'process') {
+        body.title = payload.title;
+        body.subtitle = payload.subtitle;
+        body.metadata = {
+          badge: payload.badge,
+          steps: payload.steps,
+        };
+      } else if (page === 'contact' && sectionKey === 'hero') {
+        body.title = payload.title;
+        body.subtitle = payload.subtitle;
+        body.metadata = { badge: payload.badge };
+      } else if (page === 'contact' && sectionKey === 'guarantees') {
+        body.metadata = { items: payload.items };
+      } else {
+        body.content = payload;
+      }
+
       const res = await fetch('/api/admin/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page, sectionKey, content }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.success) {

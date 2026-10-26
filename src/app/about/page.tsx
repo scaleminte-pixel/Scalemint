@@ -444,10 +444,10 @@ export default async function AboutPage() {
                           {partner.result}
                         </span>
                         <Link
-                          href="/portfolio"
+                          href="/services"
                           className="text-xs text-purple-300 hover:text-white flex items-center gap-1 group/btn"
                         >
-                          <span>Case Proof</span>
+                          <span>Explore Package</span>
                           <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                         </Link>
                       </div>
